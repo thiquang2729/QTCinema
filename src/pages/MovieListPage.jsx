@@ -25,6 +25,22 @@ const LIST_TITLES = LIST_OPTIONS.reduce((acc, cur) => {
   return acc;
 }, {});
 
+const LIST_DROPDOWN_OPTIONS = LIST_OPTIONS.map((o) => ({
+  ...o,
+  name: o.label,
+}));
+
+const SORT_FIELD_OPTIONS = [
+  { slug: 'modified.time', name: 'Mới cập nhật' },
+  { slug: 'year', name: 'Năm sản xuất' },
+  { slug: '_id', name: 'ID' },
+];
+
+const SORT_TYPE_OPTIONS = [
+  { slug: 'desc', name: 'Giảm dần' },
+  { slug: 'asc', name: 'Tăng dần' },
+];
+
 // Dữ liệu quốc gia cố định (không fetch từ backend)
 const COUNTRY_OPTIONS = [
   { _id: '62093063196e9f4ab6b448b8', name: 'Trung Quốc', slug: 'trung-quoc' },
@@ -101,7 +117,13 @@ const CATEGORY_OPTIONS = [
   { _id: '68f786a9f998955ed60add6c', name: 'Short Drama', slug: 'short-drama' },
 ];
 
-function FilterDropdown({ value, options, onChange, placeholder = 'Tất cả', minWidthClass = 'min-w-44' }) {
+function FilterDropdown({
+  value,
+  options,
+  onChange,
+  placeholder = 'Tất cả',
+  minWidthClass = 'min-w-44',
+}) {
   const [open, setOpen] = useState(false);
   const wrapperRef = useRef(null);
 
@@ -133,7 +155,7 @@ function FilterDropdown({ value, options, onChange, placeholder = 'Tất cả', 
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className="w-full bg-black border border-gray-700 text-sm text-gray-200 rounded px-2 py-1 focus:outline-none focus:border-red-600 flex items-center justify-between gap-2"
+        className="w-full h-10 bg-linear-to-b from-gray-950 to-black border border-gray-800/80 text-sm text-gray-200 rounded-lg px-3 focus:outline-none focus:border-red-600/90 focus:ring-2 focus:ring-red-600/20 flex items-center justify-between gap-2 shadow-[0_0_0_1px_rgba(255,255,255,0.02)_inset] hover:border-gray-700 transition-colors"
       >
         <span className="truncate">{selectedLabel}</span>
         <svg
@@ -151,15 +173,15 @@ function FilterDropdown({ value, options, onChange, placeholder = 'Tất cả', 
       </button>
 
       {open && (
-        <div className="absolute z-50 mt-2 w-full rounded-lg border border-gray-800 bg-gray-950 shadow-xl overflow-hidden">
-          <div className="max-h-72 overflow-y-auto scrollbar-hide py-1">
+        <div className="absolute z-50 mt-2 w-full rounded-xl border border-gray-800/80 bg-linear-to-b from-gray-950 to-black shadow-2xl overflow-hidden">
+          <div className="max-h-80 overflow-y-auto scrollbar-hide py-1">
             <button
               type="button"
               onClick={() => {
                 onChange('');
                 setOpen(false);
               }}
-              className={`w-full text-left px-3 py-2 text-sm hover:bg-gray-900/70 ${
+              className={`w-full text-left px-3 py-2.5 text-sm hover:bg-gray-900/70 transition-colors ${
                 !value ? 'text-white bg-gray-900/50' : 'text-gray-200'
               }`}
             >
@@ -175,7 +197,7 @@ function FilterDropdown({ value, options, onChange, placeholder = 'Tất cả', 
                     onChange(opt.slug);
                     setOpen(false);
                   }}
-                  className={`w-full text-left px-3 py-2 text-sm hover:bg-gray-900/70 ${
+                  className={`w-full text-left px-3 py-2.5 text-sm hover:bg-gray-900/70 transition-colors ${
                     active ? 'text-white bg-gray-900/50' : 'text-gray-200'
                   }`}
                 >
@@ -247,6 +269,13 @@ function MovieListPage() {
     });
   };
 
+  const handleListSlugChange = (nextSlug) => {
+    const next = new URLSearchParams(searchParams);
+    next.set('page', '1');
+    setSearchParams(next);
+    navigate(`/danh-sach/${nextSlug}?${next.toString()}`);
+  };
+
   const title = LIST_TITLES[slug] || 'Danh sách phim';
 
   if (loading && movies.length === 0) {
@@ -294,103 +323,93 @@ function MovieListPage() {
         </div>
 
         {/* Filter bar */}
-        <div className="mb-6 bg-gray-900/60 border border-gray-800 rounded-lg px-4 py-3 flex flex-wrap gap-4 items-center">
-          {/* List slug */}
-          <div className="flex items-center gap-2">
-            <span className="text-xs text-gray-400 uppercase tracking-wide">
-              Danh sách
-            </span>
-            <select
-              value={slug}
-              onChange={(e) => {
-                const nextSlug = e.target.value;
-                // giữ filter hiện tại, reset page về 1
-                setSearchParams((prev) => {
-                  const next = new URLSearchParams(prev);
-                  next.set('page', '1');
-                  return next;
-                });
-                navigate(`/danh-sach/${nextSlug}?${searchParams.toString()}`);
-              }}
-              className="bg-black border border-gray-700 text-sm text-gray-200 rounded px-2 py-1 focus:outline-none focus:border-red-600"
-            >
-              {LIST_OPTIONS.map((opt) => (
-                <option key={opt.slug} value={opt.slug}>
-                  {opt.label}
-                </option>
-              ))}
-            </select>
-          </div>
+        <div className="relative z-40 mb-6 rounded-2xl border border-gray-800/80 bg-linear-to-b from-gray-950/70 to-black/60 backdrop-blur px-4 py-4 shadow-[0_20px_60px_-30px_rgba(0,0,0,0.8)]">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+            {/* List slug */}
+            <div className="flex flex-col gap-1.5">
+              <span className="text-[11px] text-gray-400 uppercase tracking-widest">
+                Danh sách
+              </span>
+              <FilterDropdown
+                value={slug}
+                options={LIST_DROPDOWN_OPTIONS}
+                onChange={handleListSlugChange}
+                placeholder="Chọn danh sách"
+                minWidthClass="w-full"
+              />
+            </div>
 
-          {/* Sort field */}
-          <div className="flex items-center gap-2">
-            <span className="text-xs text-gray-400 uppercase tracking-wide">
-              Sắp xếp
-            </span>
-            <select
-              value={sortField}
-              onChange={(e) => updateFilterParam('sort_field', e.target.value)}
-              className="bg-black border border-gray-700 text-sm text-gray-200 rounded px-2 py-1 focus:outline-none focus:border-red-600"
-            >
-              <option value="modified.time">Mới cập nhật</option>
-              <option value="year">Năm sản xuất</option>
-              <option value="_id">ID</option>
-            </select>
-            <select
-              value={sortType}
-              onChange={(e) => updateFilterParam('sort_type', e.target.value)}
-              className="bg-black border border-gray-700 text-sm text-gray-200 rounded px-2 py-1 focus:outline-none focus:border-red-600"
-            >
-              <option value="desc">Giảm dần</option>
-              <option value="asc">Tăng dần</option>
-            </select>
-          </div>
+            {/* Sort field */}
+            <div className="flex flex-col gap-1.5">
+              <span className="text-[11px] text-gray-400 uppercase tracking-widest">
+                Sắp xếp
+              </span>
+              <div className="grid grid-cols-2 gap-2">
+                <FilterDropdown
+                  value={sortField}
+                  options={SORT_FIELD_OPTIONS}
+                  onChange={(val) => updateFilterParam('sort_field', val)}
+                  placeholder="Trường"
+                  minWidthClass="w-full"
+                />
+                <FilterDropdown
+                  value={sortType}
+                  options={SORT_TYPE_OPTIONS}
+                  onChange={(val) => updateFilterParam('sort_type', val)}
+                  placeholder="Kiểu"
+                  minWidthClass="w-full"
+                />
+              </div>
+            </div>
 
-          {/* Year */}
-          <div className="flex items-center gap-2">
-            <span className="text-xs text-gray-400 uppercase tracking-wide">
-              Năm
-            </span>
-            <input
-              type="number"
-              value={year}
-              onChange={(e) => updateFilterParam('year', e.target.value)}
-              placeholder="VD: 2026"
-              className="w-24 bg-black border border-gray-700 text-sm text-gray-200 rounded px-2 py-1 focus:outline-none focus:border-red-600"
-            />
-          </div>
+            {/* Year */}
+            <div className="flex flex-col gap-1.5">
+              <span className="text-[11px] text-gray-400 uppercase tracking-widest">
+                Năm
+              </span>
+              <input
+                type="number"
+                value={year}
+                onChange={(e) => updateFilterParam('year', e.target.value)}
+                placeholder="VD: 2026"
+                className="w-full h-10 bg-linear-to-b from-gray-950 to-black border border-gray-800/80 text-sm text-gray-200 rounded-lg px-3 focus:outline-none focus:border-red-600/90 focus:ring-2 focus:ring-red-600/20 hover:border-gray-700 transition-colors"
+              />
+            </div>
 
-          {/* Category */}
-          <div className="flex items-center gap-2">
-            <span className="text-xs text-gray-400 uppercase tracking-wide">
-              Thể loại
-            </span>
-            <FilterDropdown
-              value={category}
-              options={CATEGORY_OPTIONS}
-              onChange={(val) => updateFilterParam('category', val)}
-              placeholder="Tất cả"
-              minWidthClass="min-w-44"
-            />
-          </div>
+            {/* Category */}
+            <div className="flex flex-col gap-1.5">
+              <span className="text-[11px] text-gray-400 uppercase tracking-widest">
+                Thể loại
+              </span>
+              <FilterDropdown
+                value={category}
+                options={CATEGORY_OPTIONS}
+                onChange={(val) => updateFilterParam('category', val)}
+                placeholder="Tất cả"
+                minWidthClass="w-full"
+              />
+            </div>
 
-          {/* Country */}
-          <div className="flex items-center gap-2">
-            <span className="text-xs text-gray-400 uppercase tracking-wide">
-              Quốc gia
-            </span>
-            <FilterDropdown
-              value={country}
-              options={COUNTRY_OPTIONS}
-              onChange={(val) => updateFilterParam('country', val)}
-              placeholder="Tất cả"
-              minWidthClass="min-w-44"
-            />
+            {/* Country */}
+            <div className="flex flex-col gap-1.5">
+              <span className="text-[11px] text-gray-400 uppercase tracking-widest">
+                Quốc gia
+              </span>
+              <FilterDropdown
+                value={country}
+                options={COUNTRY_OPTIONS}
+                onChange={(val) => updateFilterParam('country', val)}
+                placeholder="Tất cả"
+                minWidthClass="w-full"
+              />
+            </div>
           </div>
         </div>
 
         {/* Movie grid */}
-        <MovieList movies={movies} title="" />
+        <div className="relative z-0">
+          <MovieList movies={movies} title="" />
+        </div>
 
         {/* Pagination đơn giản */}
         {totalPages > 1 && (
