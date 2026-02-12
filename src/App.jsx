@@ -3,6 +3,7 @@ import Navbar from './components/Navbar';
 import Home from './pages/Home';
 import MovieDetail from './pages/MovieDetail';
 import SearchPage from './pages/SearchPage';
+import WatchPage from './pages/WatchPage';
 import Footer from './components/Footer';
 
 function App() {
@@ -17,6 +18,7 @@ function App() {
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/phim/:slug" element={<MovieDetail />} />
+            <Route path="/xem/:slug" element={<WatchPage />} />
             <Route path="/search/:keyword" element={<SearchPage />} />
           </Routes>
         </main>

@@ -10,6 +10,7 @@ function MovieDetail() {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const { selectedMovie, movieImages, moviePeoples, movieKeywords, loading, imagesLoading, error } = useSelector((state) => state.movies);
+  const movie = selectedMovie;
 
   useEffect(() => {
     if (slug) {
@@ -19,6 +20,11 @@ function MovieDetail() {
       // dispatch(fetchMovieKeywords(slug));
     }
   }, [slug, dispatch]);
+
+  const handlePlayDefault = () => {
+    if (!movie) return;
+    navigate(`/xem/${slug}`);
+  };
 
   if (loading) {
     return (
@@ -46,7 +52,6 @@ function MovieDetail() {
 
   if (!selectedMovie) return null;
 
-  const movie = selectedMovie;
   const heroBackdrop =
     movieImages?.backdrops?.[0]?.urls?.w1280 ||
     movieImages?.backdrops?.[0]?.urls?.original ||
@@ -115,7 +120,10 @@ function MovieDetail() {
               </div>
 
               {/* Play Button */}
-              <button className="px-8 py-4 bg-red-600 hover:bg-red-700 text-white font-bold rounded flex items-center gap-3 transition-all hover:scale-105">
+              <button
+                onClick={handlePlayDefault}
+                className="px-8 py-4 bg-red-600 hover:bg-red-700 text-white font-bold rounded flex items-center gap-3 transition-all hover:scale-105"
+              >
                 <Play className="w-6 h-6" fill="currentColor" />
                 Xem phim
               </button>
@@ -148,7 +156,12 @@ function MovieDetail() {
                       {server.server_data.map((episode, epIndex) => (
                         <button
                           key={epIndex}
-                          className="px-4 py-2 bg-gray-800 hover:bg-red-600 text-white rounded transition-all text-sm"
+                          onClick={() =>
+                            navigate(
+                              `/xem/${slug}?server=${serverIndex}&ep=${epIndex}`
+                            )
+                          }
+                          className="px-4 py-2 rounded transition-all text-sm border bg-gray-800 border-gray-700 text-gray-100 hover:bg-red-600 hover:border-red-500"
                         >
                           {episode.name}
                         </button>
