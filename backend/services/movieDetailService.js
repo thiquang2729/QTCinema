@@ -12,8 +12,24 @@ class MovieDetailService {
   async getMovieBySlug(slug) {
     const response = await movieRepository.getMovieBySlug(slug);
     
-    // API trả về: { status, message, data: { item: {...} } }
-    const movieData = response.data?.item || response.movie;
+    /**
+     * Các API OPhim có 2 kiểu response phổ biến:
+     * - https://ophim1.com/phim/:slug
+     *   { status: true, msg: '', movie: {...}, episodes: [...] }
+     * - Một số domain khác:
+     *   { status, message, data: { item: {..., episodes: [...] } } }
+     */
+    const movieData =
+      response.data?.item || // kiểu { data: { item } }
+      response.data?.movie || // phòng trường hợp movie nằm trong data.movie
+      response.movie; // kiểu { movie }
+
+    // Lấy danh sách episodes nếu có
+    const episodes =
+      response.data?.item?.episodes || // kiểu { data: { item: { episodes } } }
+      response.data?.episodes || // kiểu { data: { episodes } }
+      response.episodes || // kiểu { episodes }
+      [];
 
     if (!movieData) {
       throw new Error('Không tìm thấy phim');
@@ -21,6 +37,9 @@ class MovieDetailService {
 
     const movie = transformService.transformMovieDetail(movieData);
     transformService.applyImageUrls(movie);
+
+    // Gắn episodes vào movie để FE hiển thị danh sách tập phim
+    movie.episodes = episodes;
 
     return {
       status: 'success',
