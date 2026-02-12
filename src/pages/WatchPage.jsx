@@ -78,13 +78,24 @@ function WatchPage() {
     movie.thumbUrl ||
     movie.posterPath;
 
+  const handleBackToDetail = () => {
+    // Đi theo history để không tạo thêm entry mới.
+    // Tránh trường hợp từ Chi tiết -> Xem -> Quay lại chi tiết,
+    // rồi ở Chi tiết bấm nút Back lại quay về trang Xem.
+    if (window.history.length > 1) {
+      navigate(-1);
+      return;
+    }
+    navigate(`/phim/${slug}`, { replace: true });
+  };
+
   return (
     <div className="min-h-screen bg-black text-white">
       {/* Thanh trên cùng */}
       <div className="h-12 flex items-center px-6 border-b border-gray-900 bg-black/90">
         <button
           type="button"
-          onClick={() => navigate(`/phim/${slug}`)}
+          onClick={handleBackToDetail}
           className="flex items-center gap-2 text-gray-200 hover:text-white text-sm font-medium"
         >
           <ArrowLeft className="w-5 h-5" />
