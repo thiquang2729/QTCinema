@@ -120,20 +120,25 @@ function Navbar() {
             {/* Search */}
             {isSearchOpen ? (
               <div className="relative">
-                <form onSubmit={handleSearch} className="flex items-center">
+                <form onSubmit={handleSearch} className="relative">
+                  <Search
+                    className="absolute left-3 top-1/2 -translate-y-1/2 w-4.5 h-4.5 text-gray-400"
+                    aria-hidden="true"
+                  />
                   <input
                     type="text"
                     value={searchKeyword}
                     onChange={(e) => setSearchKeyword(e.target.value)}
                     placeholder="Tìm phim..."
-                    className="px-4 py-1.5 bg-gray-800/90 border border-gray-700 rounded-l text-white text-sm focus:outline-none focus:border-red-600 w-48 sm:w-64"
+                    className="h-10 w-56 sm:w-80 bg-black/40 border border-gray-700/70 rounded-lg pl-10 pr-20 text-white text-sm placeholder:text-gray-500 focus:outline-none focus:border-red-600/90 focus:ring-2 focus:ring-red-600/20 backdrop-blur shadow-[0_0_0_1px_rgba(255,255,255,0.02)_inset] transition-colors"
                     autoFocus
                   />
                   <button
                     type="submit"
-                    className="px-3 py-1.5 bg-red-600 hover:bg-red-700 rounded-r transition-colors"
+                    className="absolute right-10 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-red-600 hover:bg-red-700 transition-colors flex items-center justify-center"
+                    aria-label="Tìm kiếm"
                   >
-                    <Search className="w-5 h-5" />
+                    <Search className="w-4 h-4 text-white" />
                   </button>
                   <button
                     type="button"
@@ -142,9 +147,10 @@ function Navbar() {
                       setSearchKeyword('');
                       setSearchSuggestions([]);
                     }}
-                    className="ml-2 text-gray-300 hover:text-white"
+                    className="absolute right-2 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 text-gray-200 hover:text-white transition-colors flex items-center justify-center"
+                    aria-label="Đóng"
                   >
-                    <X className="w-5 h-5" />
+                    <X className="w-4 h-4" />
                   </button>
                 </form>
 

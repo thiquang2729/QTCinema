@@ -2,7 +2,9 @@ import axios from 'axios';
 
 // Tạo axios instance để gọi backend local (không gọi trực tiếp API bên ngoài)
 const axiosInstance = axios.create({
-  baseURL: import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000/api',
+  // Ưu tiên dùng Vite proxy để tránh hardcode localhost (hữu ích khi truy cập bằng IP/LAN/mobile)
+  // Nếu cần override thì set VITE_BACKEND_URL trong .env
+  baseURL: import.meta.env.VITE_BACKEND_URL || '/api',
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json',

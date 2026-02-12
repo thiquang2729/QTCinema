@@ -2,8 +2,63 @@ import { useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchMovieById, fetchMovieImages, fetchMoviePeoples, fetchMovieKeywords } from '../redux/slices/movieSlice';
-import { ArrowLeft, Play, Star, Calendar, Clock, Eye } from 'lucide-react';
+import { ArrowLeft, Play, Star, Calendar, Clock, Eye, Flag } from 'lucide-react';
 import ImageGallery from '../components/ImageGallery';
+
+const COUNTRY_FLAG_EMOJI_BY_SLUG = {
+  'trung-quoc': '🇨🇳',
+  'han-quoc': '🇰🇷',
+  'nhat-ban': '🇯🇵',
+  'thai-lan': '🇹🇭',
+  'dai-loan': '🇹🇼',
+  'hong-kong': '🇭🇰',
+  'an-do': '🇮🇳',
+  'anh': '🇬🇧',
+  'phap': '🇫🇷',
+  'canada': '🇨🇦',
+  'duc': '🇩🇪',
+  'tay-ban-nha': '🇪🇸',
+  'tho-nhi-ky': '🇹🇷',
+  'ha-lan': '🇳🇱',
+  'indonesia': '🇮🇩',
+  'nga': '🇷🇺',
+  'mexico': '🇲🇽',
+  'ba-lan': '🇵🇱',
+  'uc': '🇦🇺',
+  'thuy-dien': '🇸🇪',
+  'malaysia': '🇲🇾',
+  'brazil': '🇧🇷',
+  'philippines': '🇵🇭',
+  'bo-dao-nha': '🇵🇹',
+  'y': '🇮🇹',
+  'dan-mach': '🇩🇰',
+  'uae': '🇦🇪',
+  'na-uy': '🇳🇴',
+  'thuy-si': '🇨🇭',
+  'chau-phi': '🌍',
+  'nam-phi': '🇿🇦',
+  'ukraina': '🇺🇦',
+  'a-rap-xe-ut': '🇸🇦',
+  'bi': '🇧🇪',
+  'ireland': '🇮🇪',
+  'colombia': '🇨🇴',
+  'phan-lan': '🇫🇮',
+  'viet-nam': '🇻🇳',
+  'chile': '🇨🇱',
+  'hy-lap': '🇬🇷',
+  'nigeria': '🇳🇬',
+  'argentina': '🇦🇷',
+  'singapore': '🇸🇬',
+  // Nhóm/khác: không có 1 quốc gia cụ thể
+  'au-my': '🌎',
+  'quoc-gia-khac': '🌐',
+};
+
+function getCountryFlagEmoji(country) {
+  const slug = country?.slug;
+  if (!slug) return '';
+  return COUNTRY_FLAG_EMOJI_BY_SLUG[slug] || '';
+}
 
 function MovieDetail() {
   const { slug } = useParams();
@@ -67,8 +122,8 @@ function MovieDetail() {
             alt={movie.title}
             className="w-full h-full object-cover"
           />
-          <div className="absolute inset-0 bg-gradient-to-r from-black via-black/80 to-transparent"></div>
-          <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent"></div>
+          <div className="absolute inset-0 bg-linear-to-r from-black via-black/80 to-transparent"></div>
+          <div className="absolute inset-0 bg-linear-to-t from-black via-transparent to-transparent"></div>
         </div>
 
         {/* Back Button */}
@@ -117,6 +172,18 @@ function MovieDetail() {
                 <span className="px-3 py-1 bg-blue-600 text-white text-sm rounded">
                   {movie.lang}
                 </span>
+                {movie.country?.[0]?.name && (
+                  <span className="px-3 py-1 bg-gray-800/80 border border-gray-700/70 text-gray-100 text-sm rounded inline-flex items-center gap-1.5 max-w-52">
+                    {getCountryFlagEmoji(movie.country[0]) ? (
+                      <span className="text-base leading-none" aria-hidden="true">
+                        {getCountryFlagEmoji(movie.country[0])}
+                      </span>
+                    ) : (
+                      <Flag className="w-4 h-4 text-gray-200" aria-hidden="true" />
+                    )}
+                    <span className="truncate">{movie.country[0].name}</span>
+                  </span>
+                )}
               </div>
 
               {/* Play Button */}

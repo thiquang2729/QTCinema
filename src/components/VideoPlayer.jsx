@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import Hls from 'hls.js';
-import { Play, Pause, Volume2, VolumeX, Maximize2, RotateCcw, RotateCw } from 'lucide-react';
+import { Play, Pause, Volume2, VolumeX, Maximize2, RotateCcw, RotateCw, Film } from 'lucide-react';
 
 /**
  * VideoPlayer
@@ -32,6 +32,9 @@ function VideoPlayer({
   const [isBuffering, setIsBuffering] = useState(true);
   const [brightness, setBrightness] = useState(1); // 1 = bình thường, 0 = tối
   const [gestureOverlay, setGestureOverlay] = useState(null); // { type: 'brightness' | 'volume', value: number } | null
+  const [playbackRate, setPlaybackRate] = useState(1);
+  const [speedMenuOpen, setSpeedMenuOpen] = useState(false);
+  const speedMenuRef = useRef(null);
 
   const gestureModeRef = useRef(null); // 'brightness' | 'volume' | null
   const gestureStartYRef = useRef(0);
@@ -84,6 +87,8 @@ function VideoPlayer({
     const onLoadedMetadata = () => {
       setDuration(video.duration || 0);
       setIsBuffering(false);
+      // Áp dụng tốc độ phát hiện tại (phòng trường hợp đổi src)
+      video.playbackRate = playbackRate;
 
       if (autoPlay) {
         setIsBuffering(true);
@@ -130,7 +135,31 @@ function VideoPlayer({
       video.removeEventListener('playing', onPlaying);
       video.removeEventListener('ended', onEnded);
     };
-  }, [autoPlay]);
+  }, [autoPlay, playbackRate]);
+
+  // Đồng bộ playbackRate vào video
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+    video.playbackRate = playbackRate;
+  }, [playbackRate]);
+
+  // Đóng menu tốc độ khi controls bị ẩn
+  useEffect(() => {
+    if (!controlsVisible) setSpeedMenuOpen(false);
+  }, [controlsVisible]);
+
+  // Click outside để đóng menu tốc độ
+  useEffect(() => {
+    const onMouseDown = (e) => {
+      if (!speedMenuRef.current) return;
+      if (!speedMenuRef.current.contains(e.target)) {
+        setSpeedMenuOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', onMouseDown);
+    return () => document.removeEventListener('mousedown', onMouseDown);
+  }, []);
 
   const togglePlay = () => {
     const video = videoRef.current;
@@ -341,6 +370,7 @@ function VideoPlayer({
   };
 
   const progressPercent = duration ? (currentTime / duration) * 100 : 0;
+  const SPEED_OPTIONS = [0.5, 0.75, 1, 1.25, 1.5, 2];
 
   if (!src) {
     return (
@@ -376,6 +406,14 @@ function VideoPlayer({
     >
       {/* Video */}
       <div className={videoWrapperClass}>
+        {/* Logo góc phải (giống Navbar) */}
+        <div className="pointer-events-none absolute top-8 opacity-50 right-8 z-30 flex items-center gap-2 select-none">
+          <Film className="w-6 h-6 text-red-600 drop-shadow" aria-hidden="true" />
+          <span className="text-red-600 text-lg font-bold tracking-tight drop-shadow">
+            QTCinema
+          </span>
+        </div>
+
         <video
           ref={videoRef}
           poster={poster}
@@ -423,7 +461,7 @@ function VideoPlayer({
 
         {/* Gradient overlay + thông tin tập hiện tại (ẩn cùng controls) */}
         <div
-          className={`pointer-events-none absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-black/90 via-black/40 to-transparent transition-opacity duration-300 ${
+          className={`pointer-events-none absolute inset-x-0 bottom-0 h-40 bg-linear-to-t from-black/90 via-black/40 to-transparent transition-opacity duration-300 ${
             controlsVisible ? 'opacity-100' : 'opacity-0'
           }`}
         />
@@ -481,7 +519,7 @@ function VideoPlayer({
           fullScreen
             ? 'absolute inset-x-0 bottom-0 z-20'
             : 'relative z-20'
-        } px-4 pb-4 pt-6 bg-gradient-to-t from-black via-black/80 to-transparent transition-opacity duration-300 ${
+        } px-4 pb-4 pt-6 bg-linear-to-t from-black via-black/80 to-transparent transition-opacity duration-300 ${
           controlsVisible ? 'opacity-100' : 'opacity-0 pointer-events-none'
         }`}
       >
@@ -563,6 +601,46 @@ function VideoPlayer({
                 onChange={handleVolumeChange}
                 className="w-20 h-1.5 cursor-pointer accent-red-600"
               />
+            </div>
+
+            {/* Speed */}
+            <div ref={speedMenuRef} className="relative">
+              <button
+                type="button"
+                onClick={() => {
+                  setSpeedMenuOpen((v) => !v);
+                  resetHideControlsTimer();
+                }}
+                className="px-2.5 py-1 rounded-full bg-white/10 hover:bg-white/20 text-xs text-white font-semibold"
+                aria-haspopup="menu"
+                aria-expanded={speedMenuOpen}
+              >
+                {playbackRate}x
+              </button>
+
+              {speedMenuOpen && (
+                <div className="absolute bottom-full mb-2 right-0 w-24 rounded-lg border border-gray-800 bg-black/95 shadow-2xl overflow-hidden z-30">
+                  {SPEED_OPTIONS.map((r) => {
+                    const active = r === playbackRate;
+                    return (
+                      <button
+                        key={r}
+                        type="button"
+                        onClick={() => {
+                          setPlaybackRate(r);
+                          setSpeedMenuOpen(false);
+                          resetHideControlsTimer();
+                        }}
+                        className={`w-full text-left px-3 py-2 text-xs hover:bg-gray-900 ${
+                          active ? 'text-white bg-gray-900/70' : 'text-gray-200'
+                        }`}
+                      >
+                        {r}x
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
             </div>
           </div>
 
