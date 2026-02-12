@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useSelector } from 'react-redux';
+import { Link } from 'react-router-dom';
 import { ChevronLeft, ChevronRight, Play, Info } from 'lucide-react';
 
 function HeroSlider() {
@@ -119,14 +120,20 @@ function HeroSlider() {
 
                   {/* Action Buttons */}
                   <div className="flex gap-3 pt-2">
-                    <button className="px-6 py-3 bg-red-600 hover:bg-red-700 text-white font-semibold rounded flex items-center gap-2 transition-all hover:scale-105 active:scale-95">
+                    <Link
+                      to={`/phim/${movie.slug}`}
+                      className="px-6 py-3 bg-red-600 hover:bg-red-700 text-white font-semibold rounded flex items-center gap-2 transition-all hover:scale-105 active:scale-95"
+                    >
                       <Play className="w-5 h-5" fill="currentColor" />
                       Xem ngay
-                    </button>
-                    <button className="px-6 py-3 bg-gray-700/80 hover:bg-gray-700 text-white font-semibold rounded flex items-center gap-2 transition-all border border-gray-600">
+                    </Link>
+                    <Link
+                      to={`/phim/${movie.slug}`}
+                      className="px-6 py-3 bg-gray-700/80 hover:bg-gray-700 text-white font-semibold rounded flex items-center gap-2 transition-all border border-gray-600"
+                    >
                       <Info className="w-5 h-5" />
                       Thông tin
-                    </button>
+                    </Link>
                   </div>
                 </div>
               </div>

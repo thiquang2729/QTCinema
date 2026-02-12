@@ -48,23 +48,29 @@ class TransformService {
       slug: movieData.slug,
       title: movieData.name,
       originalTitle: movieData.origin_name,
+      alternativeNames: movieData.alternative_names || [],
       description: movieData.content,
       rating: movieData.tmdb?.vote_average || 0,
+      ratingCount: movieData.tmdb?.vote_count || 0,
+      imdb: movieData.imdb,
       year: movieData.year,
       posterPath: movieData.poster_url,
       thumbUrl: movieData.thumb_url,
       type: movieData.type,
+      status: movieData.status,
       category: movieData.category,
       country: movieData.country,
       quality: movieData.quality,
       lang: movieData.lang,
+      langKey: movieData.lang_key || [],
       episode_current: movieData.episode_current,
       episode_total: movieData.episode_total,
       time: movieData.time,
-      actor: movieData.actor,
-      director: movieData.director,
+      view: movieData.view || 0,
+      actor: movieData.actor || [],
+      director: movieData.director || [],
       trailer_url: movieData.trailer_url,
-      episodes: movieData.episodes
+      episodes: movieData.episodes || []
     };
   }
 

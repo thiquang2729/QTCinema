@@ -11,7 +11,9 @@ class MovieDetailService {
    */
   async getMovieBySlug(slug) {
     const response = await movieRepository.getMovieBySlug(slug);
-    const movieData = response.movie || response.data?.item;
+    
+    // API trả về: { status, message, data: { item: {...} } }
+    const movieData = response.data?.item || response.movie;
 
     if (!movieData) {
       throw new Error('Không tìm thấy phim');

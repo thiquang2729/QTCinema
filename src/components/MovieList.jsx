@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
+import { Link } from 'react-router-dom';
 import { fetchMovies } from '../redux/slices/movieSlice';
 
 function MovieList() {
@@ -37,8 +38,9 @@ function MovieList() {
       ) : (
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
           {movies.map((movie) => (
-            <div
+            <Link
               key={movie.id}
+              to={`/phim/${movie.slug}`}
               className="group relative bg-gray-900 rounded-lg overflow-hidden hover:scale-105 transition-transform duration-300 cursor-pointer"
             >
               {/* Movie Poster */}
@@ -94,7 +96,7 @@ function MovieList() {
                   <span className="text-gray-400">{movie.year}</span>
                 </div>
               </div>
-            </div>
+            </Link>
           ))}
         </div>
       )}
@@ -103,4 +105,3 @@ function MovieList() {
 }
 
 export default MovieList;
-
