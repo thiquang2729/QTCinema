@@ -4,7 +4,7 @@ import { fetchMovies } from '../redux/slices/movieSlice';
 
 function MovieList() {
   const dispatch = useDispatch();
-  const { movies, loading, error } = useSelector((state) => state.movies);
+  const { movies, loading, error, cdnImageUrl } = useSelector((state) => state.movies);
 
   useEffect(() => {
     // Gọi API khi component mount
@@ -30,30 +30,66 @@ function MovieList() {
 
   return (
     <div className="space-y-6">
-      <h2 className="text-2xl font-bold text-white">Phim phổ biến</h2>
+      <h2 className="text-2xl font-bold text-white">Phim mới cập nhật</h2>
       
       {movies.length === 0 ? (
         <p className="text-gray-400 text-center py-8">Chưa có dữ liệu phim</p>
       ) : (
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
           {movies.map((movie) => (
             <div
               key={movie.id}
               className="group relative bg-gray-900 rounded-lg overflow-hidden hover:scale-105 transition-transform duration-300 cursor-pointer"
             >
-              {/* Movie Poster Placeholder */}
-              <div className="aspect-[2/3] bg-gradient-to-br from-gray-800 to-gray-900 flex items-center justify-center">
-                <span className="text-6xl">🎬</span>
+              {/* Movie Poster */}
+              <div className="aspect-[2/3] bg-gradient-to-br from-gray-800 to-gray-900 relative">
+                {movie.thumbUrl ? (
+                  <img
+                    src={movie.thumbUrl}
+                    alt={movie.title}
+                    className="w-full h-full object-cover"
+                    loading="lazy"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center">
+                    <span className="text-6xl">🎬</span>
+                  </div>
+                )}
+                
+                {/* Quality & Episode Badge */}
+                <div className="absolute top-2 left-2 flex gap-2">
+                  {movie.quality && (
+                    <span className="px-2 py-1 bg-red-600 text-white text-xs font-bold rounded">
+                      {movie.quality}
+                    </span>
+                  )}
+                  {movie.lang && (
+                    <span className="px-2 py-1 bg-blue-600 text-white text-xs font-bold rounded">
+                      {movie.lang}
+                    </span>
+                  )}
+                </div>
+                
+                {movie.episode_current && (
+                  <div className="absolute top-2 right-2">
+                    <span className="px-2 py-1 bg-black/70 text-white text-xs font-bold rounded">
+                      {movie.episode_current}
+                    </span>
+                  </div>
+                )}
               </div>
               
               {/* Movie Info Overlay */}
               <div className="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-4">
-                <h3 className="font-semibold text-white mb-1 text-sm">
+                <h3 className="font-semibold text-white mb-1 text-sm line-clamp-2">
                   {movie.title}
                 </h3>
+                <p className="text-gray-400 text-xs mb-2 line-clamp-1">
+                  {movie.originalTitle}
+                </p>
                 <div className="flex items-center justify-between text-xs">
-                  <span className="text-red-500 font-medium">
-                    {movie.rating} ⭐
+                  <span className="text-yellow-500 font-medium">
+                    ⭐ {movie.rating > 0 ? movie.rating.toFixed(1) : 'N/A'}
                   </span>
                   <span className="text-gray-400">{movie.year}</span>
                 </div>
