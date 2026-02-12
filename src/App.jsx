@@ -4,6 +4,7 @@ import Home from './pages/Home';
 import MovieDetail from './pages/MovieDetail';
 import SearchPage from './pages/SearchPage';
 import WatchPage from './pages/WatchPage';
+import MovieListPage from './pages/MovieListPage';
 import Footer from './components/Footer';
 
 function App() {
@@ -19,6 +20,7 @@ function App() {
             <Route path="/" element={<Home />} />
             <Route path="/phim/:slug" element={<MovieDetail />} />
             <Route path="/xem/:slug" element={<WatchPage />} />
+            <Route path="/danh-sach/:slug" element={<MovieListPage />} />
             <Route path="/search/:keyword" element={<SearchPage />} />
           </Routes>
         </main>

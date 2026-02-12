@@ -27,11 +27,13 @@ class SearchService {
   }
 
   /**
-   * Lấy phim theo thể loại
+   * Lấy danh sách phim theo slug danh sách + bộ lọc
+   * (phim mới, phim lẻ, phim sắp chiếu, v.v.)
    */
-  async getMoviesByCategory(categorySlug, page = 1) {
-    const response = await movieRepository.getMoviesByCategory(categorySlug, page);
-    const items = response.items || response.data?.items || [];
+  async getMoviesByList(listSlug, filters = {}) {
+    const response = await movieRepository.getMoviesByList(listSlug, filters);
+    const data = response.data || {};
+    const items = data.items || [];
 
     const movies = items.map(movie => {
       const transformed = transformService.transformMovie(movie);
@@ -41,16 +43,37 @@ class SearchService {
     return {
       status: 'success',
       items: movies,
-      pagination: response.pagination || {}
+      pagination: data.params?.pagination || {}
+    };
+  }
+
+  /**
+   * Lấy phim theo thể loại
+   */
+  async getMoviesByCategory(categorySlug, filters = {}) {
+    const response = await movieRepository.getMoviesByCategory(categorySlug, filters);
+    const data = response.data || {};
+    const items = data.items || [];
+
+    const movies = items.map(movie => {
+      const transformed = transformService.transformMovie(movie);
+      return transformService.applyImageUrls(transformed);
+    });
+
+    return {
+      status: 'success',
+      items: movies,
+      pagination: data.params?.pagination || {}
     };
   }
 
   /**
    * Lấy phim theo quốc gia
    */
-  async getMoviesByCountry(countrySlug, page = 1) {
-    const response = await movieRepository.getMoviesByCountry(countrySlug, page);
-    const items = response.items || response.data?.items || [];
+  async getMoviesByCountry(countrySlug, filters = {}) {
+    const response = await movieRepository.getMoviesByCountry(countrySlug, filters);
+    const data = response.data || {};
+    const items = data.items || [];
 
     const movies = items.map(movie => {
       const transformed = transformService.transformMovie(movie);
@@ -60,7 +83,26 @@ class SearchService {
     return {
       status: 'success',
       items: movies,
-      pagination: response.pagination || {}
+      pagination: data.params?.pagination || {}
+    };
+  }
+
+  /**
+   * Lấy danh sách quốc gia
+   */
+  async getCountries() {
+    const response = await movieRepository.getCountries();
+    // OPhim trả: { status: 'success', data: [...] }
+    // movieRepository.getCountries() trả về đúng object JSON đó.
+    const items = Array.isArray(response.data)
+      ? response.data
+      : Array.isArray(response.data?.data)
+        ? response.data.data
+        : [];
+
+    return {
+      status: 'success',
+      items
     };
   }
 }

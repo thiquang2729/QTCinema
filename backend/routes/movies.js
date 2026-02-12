@@ -10,11 +10,17 @@ const movieController = require('../controllers/movieController');
 // GET /api/movies - Lấy danh sách phim trang chủ
 router.get('/', movieController.getHomeMovies.bind(movieController));
 
+// GET /api/movies/list/:slug - Lấy danh sách phim theo slug danh sách + bộ lọc
+router.get('/list/:slug', movieController.getMoviesByList.bind(movieController));
+
 // GET /api/movies/search/:keyword - Tìm kiếm phim
 router.get('/search/:keyword', movieController.searchMovies.bind(movieController));
 
 // GET /api/movies/category/:slug - Lấy phim theo thể loại
 router.get('/category/:slug', movieController.getMoviesByCategory.bind(movieController));
+
+// GET /api/movies/countries - Lấy danh sách quốc gia
+router.get('/countries', movieController.getCountries.bind(movieController));
 
 // GET /api/movies/country/:slug - Lấy phim theo quốc gia
 router.get('/country/:slug', movieController.getMoviesByCountry.bind(movieController));

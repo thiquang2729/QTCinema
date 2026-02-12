@@ -55,12 +55,65 @@ class MovieRepository {
   }
 
   /**
+   * Lấy danh sách phim theo slug danh sách + bộ lọc
+   * Ví dụ: /v1/api/danh-sach/phim-moi?page=1&limit=24&category=hanh-dong&country=han-quoc
+   */
+  async getMoviesByList(listSlug, filters = {}) {
+    try {
+      const {
+        page,
+        limit,
+        sort_field,
+        sort_type,
+        category,
+        country,
+        year
+      } = filters;
+
+      const response = await this.apiClient.get(`/v1/api/danh-sach/${listSlug}`, {
+        params: {
+          page,
+          limit,
+          sort_field,
+          sort_type,
+          category,
+          country,
+          year
+        }
+      });
+      return response.data;
+    } catch (error) {
+      throw new Error(`API Error: ${error.message}`);
+    }
+  }
+
+  /**
    * Lấy danh sách phim theo thể loại
    */
-  async getMoviesByCategory(categorySlug, page = 1) {
+  async getMoviesByCategory(categorySlug, filters = {}) {
     try {
+      // Backward compatible: nếu truyền số thì hiểu là page
+      const normalizedFilters =
+        typeof filters === 'number' ? { page: filters } : filters;
+
+      const {
+        page,
+        limit,
+        sort_field,
+        sort_type,
+        country,
+        year
+      } = normalizedFilters;
+
       const response = await this.apiClient.get(`/v1/api/the-loai/${categorySlug}`, {
-        params: { page }
+        params: {
+          page,
+          limit,
+          sort_field,
+          sort_type,
+          country,
+          year
+        }
       });
       return response.data;
     } catch (error) {
@@ -71,11 +124,44 @@ class MovieRepository {
   /**
    * Lấy danh sách phim theo quốc gia
    */
-  async getMoviesByCountry(countrySlug, page = 1) {
+  async getMoviesByCountry(countrySlug, filters = {}) {
     try {
+      // Backward compatible: nếu truyền số thì hiểu là page
+      const normalizedFilters =
+        typeof filters === 'number' ? { page: filters } : filters;
+
+      const {
+        page,
+        limit,
+        sort_field,
+        sort_type,
+        year,
+        category
+      } = normalizedFilters;
+
       const response = await this.apiClient.get(`/v1/api/quoc-gia/${countrySlug}`, {
-        params: { page }
+        params: {
+          page,
+          limit,
+          sort_field,
+          sort_type,
+          year,
+          category
+        }
       });
+      return response.data;
+    } catch (error) {
+      throw new Error(`API Error: ${error.message}`);
+    }
+  }
+
+  /**
+   * Lấy danh sách quốc gia
+   * GET /v1/api/quoc-gia
+   */
+  async getCountries() {
+    try {
+      const response = await this.apiClient.get('/v1/api/quoc-gia');
       return response.data;
     } catch (error) {
       throw new Error(`API Error: ${error.message}`);

@@ -89,15 +89,79 @@ class MovieController {
   }
 
   /**
+   * GET /api/movies/list/:slug
+   * Lấy danh sách phim theo slug danh sách + bộ lọc
+   * Ví dụ:
+   *   /api/movies/list/phim-moi?page=1&limit=24&sort_field=modified.time&sort_type=desc&category=hanh-dong&country=han-quoc&year=2026
+   */
+  async getMoviesByList(req, res) {
+    try {
+      const { slug } = req.params;
+      const {
+        page,
+        limit,
+        sort_field,
+        sort_type,
+        category,
+        country,
+        year
+      } = req.query;
+
+      if (!slug) {
+        return res.status(400).json({
+          status: 'error',
+          error: 'Slug danh sách là bắt buộc'
+        });
+      }
+
+      const filters = {
+        page: page ? parseInt(page, 10) : undefined,
+        limit: limit ? parseInt(limit, 10) : undefined,
+        sort_field,
+        sort_type,
+        category,
+        country,
+        year
+      };
+
+      const result = await movieService.getMoviesByList(slug, filters);
+      res.json(result);
+    } catch (error) {
+      console.error('Error in getMoviesByList:', error.message);
+      res.status(500).json({
+        status: 'error',
+        error: 'Không thể lấy danh sách phim theo bộ lọc',
+        message: error.message
+      });
+    }
+  }
+
+  /**
    * GET /api/movies/category/:slug
    * Lấy phim theo thể loại
    */
   async getMoviesByCategory(req, res) {
     try {
       const { slug } = req.params;
-      const page = req.query.page || 1;
+      const {
+        page,
+        limit,
+        sort_field,
+        sort_type,
+        country,
+        year
+      } = req.query;
 
-      const result = await movieService.getMoviesByCategory(slug, page);
+      const filters = {
+        page: page ? parseInt(page, 10) : undefined,
+        limit: limit ? parseInt(limit, 10) : undefined,
+        sort_field,
+        sort_type,
+        country,
+        year
+      };
+
+      const result = await movieService.getMoviesByCategory(slug, filters);
       res.json(result);
     } catch (error) {
       console.error('Error in getMoviesByCategory:', error.message);
@@ -116,15 +180,49 @@ class MovieController {
   async getMoviesByCountry(req, res) {
     try {
       const { slug } = req.params;
-      const page = req.query.page || 1;
+      const {
+        page,
+        limit,
+        sort_field,
+        sort_type,
+        year,
+        category
+      } = req.query;
 
-      const result = await movieService.getMoviesByCountry(slug, page);
+      const filters = {
+        page: page ? parseInt(page, 10) : undefined,
+        limit: limit ? parseInt(limit, 10) : undefined,
+        sort_field,
+        sort_type,
+        year,
+        category
+      };
+
+      const result = await movieService.getMoviesByCountry(slug, filters);
       res.json(result);
     } catch (error) {
       console.error('Error in getMoviesByCountry:', error.message);
       res.status(500).json({
         status: 'error',
         error: 'Không thể lấy danh sách phim theo quốc gia',
+        message: error.message
+      });
+    }
+  }
+
+  /**
+   * GET /api/movies/countries
+   * Lấy danh sách quốc gia
+   */
+  async getCountries(req, res) {
+    try {
+      const result = await movieService.getCountries();
+      res.json(result);
+    } catch (error) {
+      console.error('Error in getCountries:', error.message);
+      res.status(500).json({
+        status: 'error',
+        error: 'Không thể lấy danh sách quốc gia',
         message: error.message
       });
     }

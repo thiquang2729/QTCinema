@@ -1,13 +1,44 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import axiosInstance from '../../services/axiosInstance';
 
-// Async thunk để lấy danh sách movies
+// Async thunk để lấy danh sách movies (trang chủ)
 export const fetchMovies = createAsyncThunk(
   'movies/fetchMovies',
   async (_, { rejectWithValue }) => {
     try {
       const response = await axiosInstance.get('/movies');
       // Backend trả về { status, items, pagination, cdnImageUrl }
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data || error.message);
+    }
+  }
+);
+
+// Async thunk để lấy danh sách phim theo slug danh sách + bộ lọc
+// Ví dụ: phim mới, phim lẻ, phim sắp chiếu...
+export const fetchMoviesByList = createAsyncThunk(
+  'movies/fetchMoviesByList',
+  async ({ slug, params = {} }, { rejectWithValue }) => {
+    try {
+      const response = await axiosInstance.get(`/movies/list/${slug}`, {
+        params,
+      });
+      // Backend trả về { status, items, pagination }
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data || error.message);
+    }
+  }
+);
+
+// Async thunk để lấy danh sách quốc gia
+export const fetchCountries = createAsyncThunk(
+  'movies/fetchCountries',
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await axiosInstance.get('/movies/countries');
+      // Backend trả về { status, items }
       return response.data;
     } catch (error) {
       return rejectWithValue(error.response?.data || error.message);
@@ -86,6 +117,8 @@ const movieSlice = createSlice({
   name: 'movies',
   initialState: {
     movies: [],
+    countries: [],
+    countriesLoading: false,
     selectedMovie: null,
     movieImages: null,
     moviePeoples: null,
@@ -124,7 +157,7 @@ const movieSlice = createSlice({
     },
   },
   extraReducers: (builder) => {
-    // Fetch movies
+    // Fetch movies (trang chủ)
     builder
       .addCase(fetchMovies.pending, (state) => {
         state.loading = true;
@@ -139,6 +172,37 @@ const movieSlice = createSlice({
       .addCase(fetchMovies.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
+      });
+
+    // Fetch movies by list slug + filters
+    builder
+      .addCase(fetchMoviesByList.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchMoviesByList.fulfilled, (state, action) => {
+        state.loading = false;
+        state.movies = action.payload.items || [];
+        state.pagination = action.payload.pagination || {};
+      })
+      .addCase(fetchMoviesByList.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+        state.movies = [];
+      });
+
+    // Fetch countries
+    builder
+      .addCase(fetchCountries.pending, (state) => {
+        state.countriesLoading = true;
+      })
+      .addCase(fetchCountries.fulfilled, (state, action) => {
+        state.countriesLoading = false;
+        state.countries = Array.isArray(action.payload.items) ? action.payload.items : [];
+      })
+      .addCase(fetchCountries.rejected, (state) => {
+        state.countriesLoading = false;
+        state.countries = [];
       });
 
     // Fetch movie by ID

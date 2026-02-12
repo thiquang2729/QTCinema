@@ -30,17 +30,32 @@ class MovieService {
   }
 
   /**
+   * Lấy danh sách phim theo slug danh sách + bộ lọc
+   * Ví dụ: phim mới, phim bộ, phim lẻ, phim sắp chiếu...
+   */
+  async getMoviesByList(listSlug, filters = {}) {
+    return searchService.getMoviesByList(listSlug, filters);
+  }
+
+  /**
    * Lấy phim theo thể loại
    */
-  async getMoviesByCategory(categorySlug, page = 1) {
-    return searchService.getMoviesByCategory(categorySlug, page);
+  async getMoviesByCategory(categorySlug, filters = {}) {
+    return searchService.getMoviesByCategory(categorySlug, filters);
   }
 
   /**
    * Lấy phim theo quốc gia
    */
-  async getMoviesByCountry(countrySlug, page = 1) {
-    return searchService.getMoviesByCountry(countrySlug, page);
+  async getMoviesByCountry(countrySlug, filters = {}) {
+    return searchService.getMoviesByCountry(countrySlug, filters);
+  }
+
+  /**
+   * Lấy danh sách quốc gia
+   */
+  async getCountries() {
+    return searchService.getCountries();
   }
 
   /**

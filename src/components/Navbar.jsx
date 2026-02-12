@@ -80,6 +80,21 @@ function Navbar() {
   };
 
   const menuItems = ['Trang chủ', 'Phim', 'TV Shows', 'Mới & Phổ biến', 'Danh sách của tôi'];
+  const listMenuItems = [
+    { slug: 'phim-moi', label: 'Phim mới' },
+    { slug: 'phim-bo', label: 'Phim bộ' },
+    { slug: 'phim-le', label: 'Phim lẻ' },
+    { slug: 'tv-shows', label: 'TV Shows' },
+    { slug: 'hoat-hinh', label: 'Hoạt hình' },
+    { slug: 'phim-vietsub', label: 'Phim Vietsub' },
+    { slug: 'phim-thuyet-minh', label: 'Phim thuyết minh' },
+    { slug: 'phim-long-tien', label: 'Phim lồng tiếng' },
+    { slug: 'phim-bo-dang-chieu', label: 'Phim bộ đang chiếu' },
+    { slug: 'phim-bo-hoan-thanh', label: 'Phim bộ hoàn thành' },
+    { slug: 'phim-sap-chieu', label: 'Phim sắp chiếu' },
+    { slug: 'subteam', label: 'Subteam' },
+    { slug: 'phim-chieu-rap', label: 'Phim chiếu rạp' },
+  ];
 
   return (
     <nav
@@ -106,6 +121,27 @@ function Navbar() {
               >
                 Trang chủ
               </Link>
+              <div className="relative group">
+                <Link
+                  to="/danh-sach/phim-moi"
+                  className="text-gray-300 hover:text-white transition-colors text-sm font-medium"
+                >
+                  Danh sách phim
+                </Link>
+                <div className="absolute left-0 mt-3 w-56 bg-black/95 border border-gray-800 rounded-xl shadow-2xl overflow-hidden opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto transition-all">
+                  <div className="py-2">
+                    {listMenuItems.map((item) => (
+                      <Link
+                        key={item.slug}
+                        to={`/danh-sach/${item.slug}`}
+                        className="block px-4 py-2 text-sm text-gray-200 hover:bg-gray-900 hover:text-white"
+                      >
+                        {item.label}
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -270,6 +306,23 @@ function Navbar() {
               >
                 Trang chủ
               </Link>
+              <div className="px-3 py-2">
+                <p className="text-xs uppercase tracking-wide text-gray-500 mb-2">
+                  Danh sách phim
+                </p>
+                <div className="grid grid-cols-2 gap-2">
+                  {listMenuItems.map((item) => (
+                    <Link
+                      key={item.slug}
+                      to={`/danh-sach/${item.slug}`}
+                      onClick={() => setIsMenuOpen(false)}
+                      className="px-3 py-2 text-sm text-gray-300 hover:text-white hover:bg-red-600/20 rounded transition-colors"
+                    >
+                      {item.label}
+                    </Link>
+                  ))}
+                </div>
+              </div>
             </div>
           </div>
         )}
