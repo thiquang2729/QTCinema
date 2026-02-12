@@ -99,7 +99,7 @@ function WatchPage() {
       {/* Khu vực player + danh sách tập */}
       <div className="flex flex-col lg:flex-row h-[calc(100vh-3rem)]">
         {/* Player */}
-        <div className="flex-1 bg-black">
+        <div className="flex-1 bg-black flex items-center justify-center xl:px-8">
           {currentEpisode ? (
             <VideoPlayer
               src={currentEpisode.link_m3u8}

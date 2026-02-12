@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import Hls from 'hls.js';
-import { Play, Pause, Volume2, VolumeX, Maximize2 } from 'lucide-react';
+import { Play, Pause, Volume2, VolumeX, Maximize2, RotateCcw, RotateCw } from 'lucide-react';
 
 /**
  * VideoPlayer
@@ -354,6 +354,33 @@ function VideoPlayer({
             )}
           </div>
         )}
+
+        {/* Nút tua -10s / +10s ở giữa 2 nửa màn hình (PC) */}
+        {controlsVisible && (
+          <div className="absolute inset-0 grid grid-cols-2 items-center pointer-events-none">
+            <div className="flex justify-center">
+              <button
+                type="button"
+                onClick={() => seekBy(-10)}
+                className="pointer-events-auto flex items-center gap-2 text-white/80 hover:text-white focus:outline-none"
+              >
+                <RotateCcw className="w-7 h-7" />
+                <span className="text-lg font-semibold">-10s</span>
+              </button>
+            </div>
+
+            <div className="flex justify-center">
+              <button
+                type="button"
+                onClick={() => seekBy(10)}
+                className="pointer-events-auto flex items-center gap-2 text-white/80 hover:text-white focus:outline-none"
+              >
+                <span className="text-lg font-semibold">+10s</span>
+                <RotateCw className="w-7 h-7" />
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Controls */}
@@ -388,7 +415,7 @@ function VideoPlayer({
 
         {/* Buttons row */}
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-4">
             {/* Play/Pause */}
             <button
               type="button"
@@ -400,6 +427,26 @@ function VideoPlayer({
               ) : (
                 <Play className="w-4 h-4 ml-0.5" />
               )}
+            </button>
+
+            {/* Seek -10s */}
+            <button
+              type="button"
+              onClick={() => seekBy(-10)}
+              className="flex items-center gap-1 px-2 py-1 rounded-full bg-white/10 hover:bg-white/20 text-xs text-white"
+            >
+              <RotateCcw className="w-4 h-4" />
+              <span>-10s</span>
+            </button>
+
+            {/* Seek +10s */}
+            <button
+              type="button"
+              onClick={() => seekBy(10)}
+              className="flex items-center gap-1 px-2 py-1 rounded-full bg-white/10 hover:bg-white/20 text-xs text-white"
+            >
+              <RotateCw className="w-4 h-4" />
+              <span>+10s</span>
             </button>
 
             {/* Volume */}
