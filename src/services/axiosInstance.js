@@ -1,8 +1,8 @@
 import axios from 'axios';
 
-// Tạo axios instance với cấu hình mặc định
+// Tạo axios instance để gọi backend local (không gọi trực tiếp API bên ngoài)
 const axiosInstance = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || 'https://api.example.com',
+  baseURL: import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000/api',
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json',
