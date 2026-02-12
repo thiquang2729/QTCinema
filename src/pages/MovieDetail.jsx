@@ -15,7 +15,7 @@ function MovieDetail() {
     if (slug) {
       dispatch(fetchMovieById(slug));
       dispatch(fetchMovieImages(slug));
-      dispatch(fetchMoviePeoples(slug));
+      // dispatch(fetchMoviePeoples(slug));
       // dispatch(fetchMovieKeywords(slug));
     }
   }, [slug, dispatch]);
@@ -47,6 +47,10 @@ function MovieDetail() {
   if (!selectedMovie) return null;
 
   const movie = selectedMovie;
+  const heroBackdrop =
+    movieImages?.backdrops?.[0]?.urls?.w1280 ||
+    movieImages?.backdrops?.[0]?.urls?.original ||
+    null;
 
   return (
     <div className="min-h-screen bg-black text-white">
@@ -54,7 +58,7 @@ function MovieDetail() {
       <div className="relative h-[70vh]">
         <div className="absolute inset-0">
           <img
-            src={movie.thumbUrl || movie.posterPath}
+            src={heroBackdrop || movie.thumbUrl || movie.posterPath}
             alt={movie.title}
             className="w-full h-full object-cover"
           />

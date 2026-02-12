@@ -2,6 +2,8 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import Home from './pages/Home';
 import MovieDetail from './pages/MovieDetail';
+import SearchPage from './pages/SearchPage';
+import Footer from './components/Footer';
 
 function App() {
   return (
@@ -15,17 +17,12 @@ function App() {
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/phim/:slug" element={<MovieDetail />} />
+            <Route path="/search/:keyword" element={<SearchPage />} />
           </Routes>
         </main>
 
         {/* Footer */}
-        <footer className="bg-black border-t border-gray-900 py-8">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <p className="text-center text-gray-500 text-sm">
-              © 2026 QTCinema. React + Vite + Tailwind CSS + Redux + Axios
-            </p>
-          </div>
-        </footer>
+        <Footer />
       </div>
     </Router>
   );

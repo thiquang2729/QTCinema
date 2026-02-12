@@ -66,16 +66,17 @@ class MovieController {
   async searchMovies(req, res) {
     try {
       const { keyword } = req.params;
-      const page = req.query.page || 1;
+      const page = parseInt(req.query.page) || 1;
+      const limit = parseInt(req.query.limit) || 24;
 
-      if (!keyword) {
+      if (!keyword || keyword.length < 2) {
         return res.status(400).json({
           status: 'error',
-          error: 'Từ khóa tìm kiếm là bắt buộc'
+          error: 'Từ khóa tìm kiếm phải có ít nhất 2 ký tự'
         });
       }
 
-      const result = await movieService.searchMovies(keyword, page);
+      const result = await movieService.searchMovies(keyword, page, limit);
       res.json(result);
     } catch (error) {
       console.error('Error in searchMovies:', error.message);

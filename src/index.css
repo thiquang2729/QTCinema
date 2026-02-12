@@ -1,1 +1,13 @@
 @import "tailwindcss";
+
+/* Ẩn scrollbar nhưng vẫn cho phép cuộn */
+.scrollbar-hide {
+  scrollbar-width: none; /* Firefox */
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+  display: none; /* Chrome, Safari, Edge */
+}
+

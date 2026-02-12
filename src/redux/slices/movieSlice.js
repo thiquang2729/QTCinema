@@ -67,6 +67,21 @@ export const fetchMovieKeywords = createAsyncThunk(
   }
 );
 
+// Async thunk để tìm kiếm phim
+export const searchMovies = createAsyncThunk(
+  'movies/searchMovies',
+  async ({ keyword, page = 1, limit = 24 }, { rejectWithValue }) => {
+    try {
+      const response = await axiosInstance.get(`/movies/search/${keyword}`, {
+        params: { page, limit }
+      });
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data || error.message);
+    }
+  }
+);
+
 const movieSlice = createSlice({
   name: 'movies',
   initialState: {
@@ -75,10 +90,13 @@ const movieSlice = createSlice({
     movieImages: null,
     moviePeoples: null,
     movieKeywords: null,
+    searchResults: [],
+    searchPagination: {},
     loading: false,
     imagesLoading: false,
     peoplesLoading: false,
     keywordsLoading: false,
+    searchLoading: false,
     error: null,
     pagination: {},
     cdnImageUrl: ''
@@ -99,6 +117,10 @@ const movieSlice = createSlice({
     },
     clearMovieKeywords: (state) => {
       state.movieKeywords = null;
+    },
+    clearSearchResults: (state) => {
+      state.searchResults = [];
+      state.searchPagination = {};
     },
   },
   extraReducers: (builder) => {
@@ -178,8 +200,25 @@ const movieSlice = createSlice({
         state.keywordsLoading = false;
         state.error = action.payload;
       });
+
+    // Search movies
+    builder
+      .addCase(searchMovies.pending, (state) => {
+        state.searchLoading = true;
+        state.error = null;
+      })
+      .addCase(searchMovies.fulfilled, (state, action) => {
+        state.searchLoading = false;
+        state.searchResults = action.payload.items || [];
+        state.searchPagination = action.payload.pagination || {};
+      })
+      .addCase(searchMovies.rejected, (state, action) => {
+        state.searchLoading = false;
+        state.error = action.payload;
+        state.searchResults = [];
+      });
   },
 });
 
-export const { clearSelectedMovie, clearError, clearMovieImages, clearMoviePeoples, clearMovieKeywords } = movieSlice.actions;
+export const { clearSelectedMovie, clearError, clearMovieImages, clearMoviePeoples, clearMovieKeywords, clearSearchResults } = movieSlice.actions;
 export default movieSlice.reducer;

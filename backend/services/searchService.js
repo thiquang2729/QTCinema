@@ -9,9 +9,10 @@ class SearchService {
   /**
    * Tìm kiếm phim theo keyword
    */
-  async searchMovies(keyword, page = 1) {
-    const response = await movieRepository.searchMovies(keyword, page);
-    const items = response.items || response.data?.items || [];
+  async searchMovies(keyword, page = 1, limit = 24) {
+    const response = await movieRepository.searchMovies(keyword, page, limit);
+    const data = response.data || {};
+    const items = data.items || [];
 
     const movies = items.map(movie => {
       const transformed = transformService.transformMovie(movie);
@@ -21,7 +22,7 @@ class SearchService {
     return {
       status: 'success',
       items: movies,
-      pagination: response.pagination || {}
+      pagination: data.params?.pagination || {}
     };
   }
 

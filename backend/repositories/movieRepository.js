@@ -43,10 +43,10 @@ class MovieRepository {
   /**
    * Tìm kiếm phim
    */
-  async searchMovies(keyword, page = 1) {
+  async searchMovies(keyword, page = 1, limit = 24) {
     try {
       const response = await this.apiClient.get('/v1/api/tim-kiem', {
-        params: { keyword, page }
+        params: { keyword, page, limit }
       });
       return response.data;
     } catch (error) {
