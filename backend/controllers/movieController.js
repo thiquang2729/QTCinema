@@ -128,6 +128,87 @@ class MovieController {
       });
     }
   }
+
+  /**
+   * GET /api/movies/:slug/images
+   * Lấy danh sách hình ảnh phim
+   */
+  async getMovieImages(req, res) {
+    try {
+      const { slug } = req.params;
+
+      if (!slug) {
+        return res.status(400).json({
+          status: 'error',
+          error: 'Slug là bắt buộc'
+        });
+      }
+
+      const result = await movieService.getMovieImages(slug);
+      res.json(result);
+    } catch (error) {
+      console.error('Error in getMovieImages:', error.message);
+      res.status(500).json({
+        status: 'error',
+        error: 'Không thể lấy hình ảnh phim',
+        message: error.message
+      });
+    }
+  }
+
+  /**
+   * GET /api/movies/:slug/peoples
+   * Lấy thông tin diễn viên/đạo diễn
+   */
+  async getMoviePeoples(req, res) {
+    try {
+      const { slug } = req.params;
+
+      if (!slug) {
+        return res.status(400).json({
+          status: 'error',
+          error: 'Slug là bắt buộc'
+        });
+      }
+
+      const result = await movieService.getMoviePeoples(slug);
+      res.json(result);
+    } catch (error) {
+      console.error('Error in getMoviePeoples:', error.message);
+      res.status(500).json({
+        status: 'error',
+        error: 'Không thể lấy thông tin diễn viên',
+        message: error.message
+      });
+    }
+  }
+
+  /**
+   * GET /api/movies/:slug/keywords
+   * Lấy từ khóa phim
+   */
+  async getMovieKeywords(req, res) {
+    try {
+      const { slug } = req.params;
+
+      if (!slug) {
+        return res.status(400).json({
+          status: 'error',
+          error: 'Slug là bắt buộc'
+        });
+      }
+
+      const result = await movieService.getMovieKeywords(slug);
+      res.json(result);
+    } catch (error) {
+      console.error('Error in getMovieKeywords:', error.message);
+      res.status(500).json({
+        status: 'error',
+        error: 'Không thể lấy từ khóa phim',
+        message: error.message
+      });
+    }
+  }
 }
 
 module.exports = new MovieController();

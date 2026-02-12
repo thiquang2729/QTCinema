@@ -92,6 +92,9 @@ class TransformService {
     }
     if (movie.thumbUrl) {
       movie.thumbUrl = this.buildImageUrl(movie.thumbUrl, cdnUrl);
+    } else if (movie.posterPath) {
+      // Fallback: nếu không có thumbUrl, dùng posterPath
+      movie.thumbUrl = movie.posterPath;
     }
     return movie;
   }

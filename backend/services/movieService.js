@@ -42,6 +42,27 @@ class MovieService {
   async getMoviesByCountry(countrySlug, page = 1) {
     return searchService.getMoviesByCountry(countrySlug, page);
   }
+
+  /**
+   * Lấy hình ảnh phim
+   */
+  async getMovieImages(slug) {
+    return movieDetailService.getMovieImages(slug);
+  }
+
+  /**
+   * Lấy thông tin diễn viên
+   */
+  async getMoviePeoples(slug) {
+    return movieDetailService.getMoviePeoples(slug);
+  }
+
+  /**
+   * Lấy từ khóa phim
+   */
+  async getMovieKeywords(slug) {
+    return movieDetailService.getMovieKeywords(slug);
+  }
 }
 
 module.exports = new MovieService();

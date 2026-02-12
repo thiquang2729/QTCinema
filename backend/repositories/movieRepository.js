@@ -81,6 +81,42 @@ class MovieRepository {
       throw new Error(`API Error: ${error.message}`);
     }
   }
+
+  /**
+   * Lấy danh sách hình ảnh phim
+   */
+  async getMovieImages(slug) {
+    try {
+      const response = await this.apiClient.get(`/v1/api/phim/${slug}/images`);
+      return response.data;
+    } catch (error) {
+      throw new Error(`API Error: ${error.message}`);
+    }
+  }
+
+  /**
+   * Lấy thông tin diễn viên/đạo diễn
+   */
+  async getMoviePeoples(slug) {
+    try {
+      const response = await this.apiClient.get(`/v1/api/phim/${slug}/peoples`);
+      return response.data;
+    } catch (error) {
+      throw new Error(`API Error: ${error.message}`);
+    }
+  }
+
+  /**
+   * Lấy từ khóa phim
+   */
+  async getMovieKeywords(slug) {
+    try {
+      const response = await this.apiClient.get(`/v1/api/phim/${slug}/keywords`);
+      return response.data;
+    } catch (error) {
+      throw new Error(`API Error: ${error.message}`);
+    }
+  }
 }
 
 module.exports = new MovieRepository();

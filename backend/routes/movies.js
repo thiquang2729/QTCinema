@@ -19,6 +19,15 @@ router.get('/category/:slug', movieController.getMoviesByCategory.bind(movieCont
 // GET /api/movies/country/:slug - Lấy phim theo quốc gia
 router.get('/country/:slug', movieController.getMoviesByCountry.bind(movieController));
 
+// GET /api/movies/:slug/images - Lấy hình ảnh phim (phải trước /:slug)
+router.get('/:slug/images', movieController.getMovieImages.bind(movieController));
+
+// GET /api/movies/:slug/peoples - Lấy thông tin diễn viên (phải trước /:slug)
+router.get('/:slug/peoples', movieController.getMoviePeoples.bind(movieController));
+
+// GET /api/movies/:slug/keywords - Lấy từ khóa phim (phải trước /:slug)
+router.get('/:slug/keywords', movieController.getMovieKeywords.bind(movieController));
+
 // GET /api/movies/:slug - Lấy chi tiết phim (phải để cuối cùng)
 router.get('/:slug', movieController.getMovieBySlug.bind(movieController));
 
