@@ -21,6 +21,7 @@ function VideoPlayer({
   const hlsRef = useRef(null);
   const progressRef = useRef(null);
   const hideControlsTimeoutRef = useRef(null);
+  const gestureTimeoutRef = useRef(null);
 
   const [isPlaying, setIsPlaying] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
@@ -29,6 +30,12 @@ function VideoPlayer({
   const [currentTime, setCurrentTime] = useState(0);
   const [controlsVisible, setControlsVisible] = useState(true);
   const [isBuffering, setIsBuffering] = useState(true);
+  const [brightness, setBrightness] = useState(1); // 1 = bình thường, 0 = tối
+  const [gestureOverlay, setGestureOverlay] = useState(null); // { type: 'brightness' | 'volume', value: number } | null
+
+  const gestureModeRef = useRef(null); // 'brightness' | 'volume' | null
+  const gestureStartYRef = useRef(0);
+  const gestureStartValueRef = useRef(0);
 
   // Khởi tạo HLS khi src thay đổi
   useEffect(() => {
@@ -216,8 +223,74 @@ function VideoPlayer({
       if (hideControlsTimeoutRef.current) {
         clearTimeout(hideControlsTimeoutRef.current);
       }
+      if (gestureTimeoutRef.current) {
+        clearTimeout(gestureTimeoutRef.current);
+      }
     };
   }, []);
+
+  // Touch gestures cho mobile: bên trái điều chỉnh độ sáng, bên phải điều chỉnh âm lượng (vuốt lên/xuống)
+  const handleTouchStart = (e) => {
+    if (e.touches.length !== 1) return;
+    const touch = e.touches[0];
+    const rect = containerRef.current?.getBoundingClientRect();
+    if (!rect) return;
+
+    gestureStartYRef.current = touch.clientY;
+
+    const isLeftHalf = touch.clientX - rect.left < rect.width / 2;
+    if (isLeftHalf) {
+      gestureModeRef.current = 'brightness';
+      gestureStartValueRef.current = brightness;
+    } else {
+      gestureModeRef.current = 'volume';
+      const video = videoRef.current;
+      gestureStartValueRef.current = video ? video.volume : volume;
+    }
+  };
+
+  const handleTouchMove = (e) => {
+    if (!gestureModeRef.current || e.touches.length !== 1) return;
+
+    const touch = e.touches[0];
+    const deltaY = gestureStartYRef.current - touch.clientY; // vuốt lên: dương
+    const factor = 0.005; // độ nhạy
+
+    if (e.cancelable) {
+      e.preventDefault();
+    }
+
+    if (gestureModeRef.current === 'brightness') {
+      let next = gestureStartValueRef.current + deltaY * factor;
+      next = Math.min(1, Math.max(0.2, next)); // không tối quá
+      setBrightness(next);
+      const percent = Math.round(next * 100);
+      setGestureOverlay({ type: 'brightness', value: percent });
+    } else if (gestureModeRef.current === 'volume') {
+      let next = gestureStartValueRef.current + deltaY * factor;
+      next = Math.min(1, Math.max(0, next));
+      const video = videoRef.current;
+      if (video) {
+        video.volume = next;
+      }
+      setVolume(next);
+      setIsMuted(next === 0);
+      const percent = Math.round(next * 100);
+      setGestureOverlay({ type: 'volume', value: percent });
+    }
+  };
+
+  const handleTouchEnd = () => {
+    gestureModeRef.current = null;
+    if (gestureTimeoutRef.current) {
+      clearTimeout(gestureTimeoutRef.current);
+    }
+    if (gestureOverlay) {
+      gestureTimeoutRef.current = setTimeout(() => {
+        setGestureOverlay(null);
+      }, 700);
+    }
+  };
 
   // Keyboard shortcuts: Space (play/pause), ArrowLeft/ArrowRight (seek 10s)
   useEffect(() => {
@@ -296,6 +369,9 @@ function VideoPlayer({
       ref={containerRef}
       className={containerClass}
       onMouseMove={handleMouseMove}
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
       tabIndex={0}
     >
       {/* Video */}
@@ -322,10 +398,26 @@ function VideoPlayer({
           }}
         />
 
+        {/* Brightness overlay (giả lập độ sáng) */}
+        <div
+          className="pointer-events-none absolute inset-0 bg-black"
+          style={{ opacity: 1 - brightness }}
+        />
+
         {/* Loading overlay */}
         {isBuffering && (
           <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
             <div className="h-12 w-12 rounded-full border-4 border-white/30 border-t-red-600 animate-spin" />
+          </div>
+        )}
+
+        {/* Overlay hiển thị % độ sáng / âm lượng khi vuốt */}
+        {gestureOverlay && (
+          <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+            <div className="px-4 py-2 rounded-lg bg-black/70 text-white text-sm font-semibold">
+              {gestureOverlay.type === 'brightness' ? 'Độ sáng ' : 'Âm lượng '}
+              {gestureOverlay.value}%
+            </div>
           </div>
         )}
 
@@ -357,7 +449,7 @@ function VideoPlayer({
 
         {/* Nút tua -10s / +10s ở giữa 2 nửa màn hình (PC) */}
         {controlsVisible && (
-          <div className="absolute inset-0 grid grid-cols-2 items-center pointer-events-none">
+          <div className="absolute inset-0 hidden md:grid grid-cols-2 items-center pointer-events-none">
             <div className="flex justify-center">
               <button
                 type="button"

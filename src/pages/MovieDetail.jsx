@@ -74,7 +74,7 @@ function MovieDetail() {
         {/* Back Button */}
         <button
           onClick={() => navigate(-1)}
-          className="absolute top-20 left-4 z-10 p-2 bg-black/50 hover:bg-black/80 rounded-full transition-all"
+          className="absolute top-5 left-10 z-10 p-2 bg-black/50 hover:bg-black/80 rounded-full transition-all"
         >
           <ArrowLeft className="w-6 h-6" />
         </button>
