@@ -93,7 +93,11 @@ function MovieDetail() {
     return (
       <div className="min-h-screen bg-black pt-20 flex items-center justify-center">
         <div className="text-center">
-          <div className="text-red-500 text-xl mb-4">{error}</div>
+          <div className="text-red-500 text-xl mb-4">
+            {typeof error === 'string'
+              ? error
+              : error?.message || error?.error || JSON.stringify(error)}
+          </div>
           <button
             onClick={() => navigate('/')}
             className="px-6 py-3 bg-red-600 hover:bg-red-700 text-white rounded"

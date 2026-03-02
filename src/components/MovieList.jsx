@@ -52,10 +52,10 @@ function MovieList({ movies: externalMovies, title = 'Phim mới cập nhật' }
             <Link
               key={movie.id || movie._id || movie.slug}
               to={`/phim/${movie.slug}`}
-              className="group relative bg-gray-900 rounded-lg overflow-hidden hover:scale-105 transition-transform duration-300 cursor-pointer"
+              className="group relative bg-gray-900 rounded-lg overflow-hidden hover:scale-105 transition-transform duration-300 cursor-pointer flex flex-col"
             >
               {/* Movie Poster */}
-              <div className="aspect-[2/3] bg-gradient-to-br from-gray-800 to-gray-900 relative">
+              <div className="aspect-2/3 bg-linear-to-br from-gray-800 to-gray-900 relative">
                 {movie.thumbUrl ? (
                   <img
                     src={movie.thumbUrl}
@@ -93,7 +93,7 @@ function MovieList({ movies: externalMovies, title = 'Phim mới cập nhật' }
               </div>
 
               {/* Movie Info Overlay */}
-              <div className="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-4">
+              <div className="absolute inset-0 bg-linear-to-t from-black via-black/60 to-transparent opacity-100 flex flex-col justify-end p-4">
                 <h3 className="font-semibold text-white mb-1 text-sm line-clamp-2">
                   {movie.title}
                 </h3>

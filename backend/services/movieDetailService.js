@@ -51,17 +51,48 @@ class MovieDetailService {
    * Lấy danh sách hình ảnh phim
    */
   async getMovieImages(slug) {
-    const response = await movieRepository.getMovieImages(slug);
-    
-    if (!response.success) {
-      throw new Error('Không thể lấy hình ảnh phim');
+    let response;
+    try {
+      response = await movieRepository.getMovieImages(slug);
+    } catch (err) {
+      // Một số phim OPhim/TMDB không có images hoặc endpoint trả 500.
+      // Không xem đây là lỗi fatal để tránh làm sập trang chi tiết.
+      return {
+        status: 'success',
+        data: {
+          slug,
+          images: [],
+          backdrops: [],
+          posters: []
+        }
+      };
     }
 
-    const data = response.data;
+    const data = response?.data;
+    const imagesRaw = Array.isArray(data?.images) ? data.images : [];
+
+    // Nếu API trả không thành công hoặc không có images
+    if (response?.success !== true || imagesRaw.length === 0) {
+      return {
+        status: 'success',
+        data: {
+          tmdbId: data?.tmdb_id,
+          tmdbType: data?.tmdb_type,
+          ophimId: data?.ophim_id,
+          slug: data?.slug || slug,
+          imdbId: data?.imdb_id,
+          imageSizes: data?.image_sizes,
+          images: [],
+          backdrops: [],
+          posters: []
+        }
+      };
+    }
+
     const TMDB_IMAGE_BASE = 'https://image.tmdb.org/t/p';
 
     // Transform images với full URLs
-    const images = data.images.map(img => ({
+    const images = imagesRaw.map(img => ({
       width: img.width,
       height: img.height,
       aspectRatio: img.aspect_ratio,
@@ -81,12 +112,12 @@ class MovieDetailService {
     return {
       status: 'success',
       data: {
-        tmdbId: data.tmdb_id,
-        tmdbType: data.tmdb_type,
-        ophimId: data.ophim_id,
-        slug: data.slug,
-        imdbId: data.imdb_id,
-        imageSizes: data.image_sizes,
+        tmdbId: data?.tmdb_id,
+        tmdbType: data?.tmdb_type,
+        ophimId: data?.ophim_id,
+        slug: data?.slug || slug,
+        imdbId: data?.imdb_id,
+        imageSizes: data?.image_sizes,
         images: images,
         // Phân loại images
         backdrops: images.filter(img => img.type === 'backdrop'),

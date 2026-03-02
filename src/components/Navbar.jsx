@@ -130,7 +130,7 @@ function Navbar() {
                     value={searchKeyword}
                     onChange={(e) => setSearchKeyword(e.target.value)}
                     placeholder="Tìm phim..."
-                    className="h-10 w-56 sm:w-80 bg-black/40 border border-gray-700/70 rounded-lg pl-10 pr-20 text-white text-sm placeholder:text-gray-500 focus:outline-none focus:border-red-600/90 focus:ring-2 focus:ring-red-600/20 backdrop-blur shadow-[0_0_0_1px_rgba(255,255,255,0.02)_inset] transition-colors"
+                    className="h-10 w-48 sm:w-80 bg-black/40 border border-gray-700/70 rounded-lg pl-10 pr-20 text-white text-sm placeholder:text-gray-500 focus:outline-none focus:border-red-600/90 focus:ring-2 focus:ring-red-600/20 backdrop-blur shadow-[0_0_0_1px_rgba(255,255,255,0.02)_inset] transition-colors"
                     autoFocus
                   />
                   <button

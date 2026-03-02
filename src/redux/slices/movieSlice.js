@@ -121,6 +121,7 @@ const movieSlice = createSlice({
     countriesLoading: false,
     selectedMovie: null,
     movieImages: null,
+    imagesError: null,
     moviePeoples: null,
     movieKeywords: null,
     searchResults: [],
@@ -224,15 +225,18 @@ const movieSlice = createSlice({
     builder
       .addCase(fetchMovieImages.pending, (state) => {
         state.imagesLoading = true;
-        state.error = null;
+        state.imagesError = null;
       })
       .addCase(fetchMovieImages.fulfilled, (state, action) => {
         state.imagesLoading = false;
         state.movieImages = action.payload.data || action.payload;
+        state.imagesError = null;
       })
       .addCase(fetchMovieImages.rejected, (state, action) => {
         state.imagesLoading = false;
-        state.error = action.payload;
+        // Ảnh lỗi/thiếu dữ liệu không nên làm sập cả trang chi tiết
+        state.movieImages = null;
+        state.imagesError = action.payload;
       });
 
     // Fetch movie peoples

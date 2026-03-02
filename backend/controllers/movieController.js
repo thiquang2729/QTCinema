@@ -247,10 +247,15 @@ class MovieController {
       res.json(result);
     } catch (error) {
       console.error('Error in getMovieImages:', error.message);
-      res.status(500).json({
-        status: 'error',
-        error: 'Không thể lấy hình ảnh phim',
-        message: error.message
+      // Không coi lỗi images là fatal để tránh làm sập trang chi tiết
+      res.json({
+        status: 'success',
+        data: {
+          slug: req.params.slug,
+          images: [],
+          backdrops: [],
+          posters: []
+        }
       });
     }
   }
