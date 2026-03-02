@@ -129,6 +129,7 @@ function MovieList({
             <Link
               key={movie.id || movie._id || movie.slug}
               to={`/phim/${movie.slug}`}
+              onClick={() => window.scrollTo({ top: 0, left: 0, behavior: 'smooth' })}
               className={
                 isRow
                   ? 'group relative shrink-0 w-36 sm:w-44 md:w-48 lg:w-52 bg-gray-900 rounded-lg overflow-hidden hover:scale-105 transition-transform duration-300 cursor-pointer'
