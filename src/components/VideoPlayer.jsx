@@ -549,7 +549,7 @@ function VideoPlayer({
 
         {/* Buttons row */}
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2">
             {/* Play/Pause */}
             <button
               type="button"
@@ -567,7 +567,7 @@ function VideoPlayer({
             <button
               type="button"
               onClick={() => seekBy(-10)}
-              className="flex items-center gap-1 px-2 py-1 rounded-full bg-white/10 hover:bg-white/20 text-xs text-white"
+              className="flex items-center gap-1 px-2 py-1 mx-0 rounded-full bg-white/10 hover:bg-white/20 text-xs text-white"
             >
               <RotateCcw className="w-4 h-4" />
               <span>-10s</span>
@@ -577,7 +577,7 @@ function VideoPlayer({
             <button
               type="button"
               onClick={() => seekBy(10)}
-              className="flex items-center gap-1 px-2 py-1 rounded-full bg-white/10 hover:bg-white/20 text-xs text-white"
+              className="flex items-center gap-1 px-2 py-1 mx-0 rounded-full bg-white/10 hover:bg-white/20 text-xs text-white"
             >
               <RotateCw className="w-4 h-4" />
               <span>+10s</span>
