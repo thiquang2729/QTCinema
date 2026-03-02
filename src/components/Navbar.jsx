@@ -112,6 +112,18 @@ function Navbar() {
               >
                 Danh sách phim
               </Link>
+              <Link
+                to="/danh-sach/phim-bo"
+                className="text-gray-300 hover:text-white transition-colors text-sm font-medium"
+              >
+                Phim bộ
+              </Link>
+              <Link
+                to="/danh-sach/phim-le"
+                className="text-gray-300 hover:text-white transition-colors text-sm font-medium"
+              >
+                Phim lẻ
+              </Link>
             </div>
           </div>
 
@@ -288,6 +300,20 @@ function Navbar() {
                 className="block px-3 py-2 text-gray-300 hover:text-white hover:bg-red-600/20 rounded transition-colors"
               >
                 Danh sách phim
+              </Link>
+              <Link
+                to="/danh-sach/phim-bo"
+                onClick={() => setIsMenuOpen(false)}
+                className="block px-3 py-2 text-gray-300 hover:text-white hover:bg-red-600/20 rounded transition-colors"
+              >
+                Phim bộ
+              </Link>
+              <Link
+                to="/danh-sach/phim-le"
+                onClick={() => setIsMenuOpen(false)}
+                className="block px-3 py-2 text-gray-300 hover:text-white hover:bg-red-600/20 rounded transition-colors"
+              >
+                Phim lẻ
               </Link>
             </div>
           </div>

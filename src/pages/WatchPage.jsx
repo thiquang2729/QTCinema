@@ -99,7 +99,7 @@ function WatchPage() {
           className="flex items-center gap-2 text-gray-200 hover:text-white text-sm font-medium"
         >
           <ArrowLeft className="w-5 h-5" />
-          <span>Quay lại chi tiết</span>
+          <span>Quay lại</span>
         </button>
         <div className="ml-4 text-sm text-gray-300 truncate">
           {movie.title}
