@@ -35,6 +35,7 @@ function VideoPlayer({
   const [playbackRate, setPlaybackRate] = useState(1);
   const [speedMenuOpen, setSpeedMenuOpen] = useState(false);
   const speedMenuRef = useRef(null);
+  const [showVolumeSlider, setShowVolumeSlider] = useState(false);
 
   const gestureModeRef = useRef(null); // 'brightness' | 'volume' | null
   const gestureStartYRef = useRef(0);
@@ -146,7 +147,10 @@ function VideoPlayer({
 
   // Đóng menu tốc độ khi controls bị ẩn
   useEffect(() => {
-    if (!controlsVisible) setSpeedMenuOpen(false);
+    if (!controlsVisible) {
+      setSpeedMenuOpen(false);
+      setShowVolumeSlider(false);
+    }
   }, [controlsVisible]);
 
   // Click outside để đóng menu tốc độ
@@ -580,10 +584,13 @@ function VideoPlayer({
             </button>
 
             {/* Volume */}
-            <div className="flex items-center gap-2">
+            <div className="relative flex items-center">
               <button
                 type="button"
-                onClick={toggleMute}
+                onClick={() => {
+                  setShowVolumeSlider((v) => !v);
+                  resetHideControlsTimer();
+                }}
                 className="text-gray-200 hover:text-white"
               >
                 {isMuted || volume === 0 ? (
@@ -592,15 +599,19 @@ function VideoPlayer({
                   <Volume2 className="w-5 h-5" />
                 )}
               </button>
-              <input
-                type="range"
-                min="0"
-                max="1"
-                step="0.05"
-                value={isMuted ? 0 : volume}
-                onChange={handleVolumeChange}
-                className="w-20 h-1.5 cursor-pointer accent-red-600"
-              />
+              {showVolumeSlider && (
+                <div className="ml-2 w-20 mb-1.5">
+                  <input
+                    type="range"
+                    min="0"
+                    max="1"
+                    step="0.05"
+                    value={isMuted ? 0 : volume}
+                    onChange={handleVolumeChange}
+                    className="w-full h-1.5 cursor-pointer accent-red-600"
+                  />
+                </div>
+              )}
             </div>
 
             {/* Speed */}
