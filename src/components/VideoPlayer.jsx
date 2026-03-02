@@ -600,7 +600,7 @@ function VideoPlayer({
                 )}
               </button>
               {showVolumeSlider && (
-                <div className="ml-2 w-20 mb-1.5">
+                <div className="ml-2 w-15 mb-1.5">
                   <input
                     type="range"
                     min="0"
