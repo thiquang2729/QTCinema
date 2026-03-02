@@ -1,6 +1,7 @@
-import { useEffect } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { Link } from 'react-router-dom';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { fetchMovies } from '../redux/slices/movieSlice';
 
 /**
@@ -8,12 +9,22 @@ import { fetchMovies } from '../redux/slices/movieSlice';
  * - Nếu được truyền props `movies`, component chỉ render UI với danh sách đó (dùng cho trang tìm kiếm, category, v.v.)
  * - Nếu KHÔNG truyền `movies`, component tự gọi API lấy danh sách phim trang chủ (dùng cho Home)
  */
-function MovieList({ movies: externalMovies, title = 'Phim mới cập nhật' }) {
+function MovieList({
+  movies: externalMovies,
+  title = 'Phim mới cập nhật',
+  layout = 'grid', // 'grid' | 'row'
+  titleRight = null, // ReactNode hiển thị bên phải title
+}) {
   const dispatch = useDispatch();
   const { movies: homeMovies, loading, error } = useSelector((state) => state.movies);
 
   const isUsingExternalMovies = Array.isArray(externalMovies);
   const movies = isUsingExternalMovies ? externalMovies : homeMovies;
+  const isRow = layout === 'row';
+
+  const rowRef = useRef(null);
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(false);
 
   useEffect(() => {
     // Chỉ tự fetch khi dùng cho trang Home (không truyền movies từ ngoài vào)
@@ -21,6 +32,35 @@ function MovieList({ movies: externalMovies, title = 'Phim mới cập nhật' }
       dispatch(fetchMovies());
     }
   }, [dispatch, isUsingExternalMovies]);
+
+  // Cập nhật trạng thái có thể scroll trái/phải (chỉ dùng cho layout row)
+  useEffect(() => {
+    if (!isRow) return;
+
+    const el = rowRef.current;
+    if (!el) return;
+
+    const update = () => {
+      const { scrollLeft, scrollWidth, clientWidth } = el;
+      setCanScrollLeft(scrollLeft > 0);
+      setCanScrollRight(scrollLeft + clientWidth < scrollWidth - 1);
+    };
+
+    update();
+    el.addEventListener('scroll', update, { passive: true });
+    window.addEventListener('resize', update);
+    return () => {
+      el.removeEventListener('scroll', update);
+      window.removeEventListener('resize', update);
+    };
+  }, [isRow, movies?.length]);
+
+  const scrollRowBy = (direction) => {
+    const el = rowRef.current;
+    if (!el) return;
+    const amount = Math.round(el.clientWidth * 0.8);
+    el.scrollBy({ left: direction * amount, behavior: 'smooth' });
+  };
 
   // Chỉ hiển thị trạng thái loading / error khi đang dùng dữ liệu trang Home
   if (!isUsingExternalMovies && loading) {
@@ -42,17 +82,58 @@ function MovieList({ movies: externalMovies, title = 'Phim mới cập nhật' }
 
   return (
     <div className="space-y-6">
-      <h2 className="text-2xl font-bold text-white">{title}</h2>
+      {title ? (
+        <div className="flex items-end justify-between gap-4">
+          <h2 className="text-2xl font-bold text-white">{title}</h2>
+          {titleRight ? <div className="shrink-0">{titleRight}</div> : null}
+        </div>
+      ) : null}
 
       {(!movies || movies.length === 0) ? (
         <p className="text-gray-400 text-center py-8">Chưa có dữ liệu phim</p>
       ) : (
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
+        <div className={isRow ? 'relative' : undefined}>
+          {/* Nút scroll trái/phải (desktop) */}
+          {isRow && (
+            <>
+              <button
+                type="button"
+                onClick={() => scrollRowBy(-1)}
+                disabled={!canScrollLeft}
+                className="hidden md:flex absolute left-0 top-1/2 -translate-y-1/2 z-10 h-12 w-12 items-center justify-center rounded-full bg-black/60 hover:bg-black/80 border border-white/10 text-white transition disabled:opacity-30 disabled:cursor-not-allowed"
+                aria-label="Cuộn trái"
+              >
+                <ChevronLeft className="w-6 h-6" />
+              </button>
+              <button
+                type="button"
+                onClick={() => scrollRowBy(1)}
+                disabled={!canScrollRight}
+                className="hidden md:flex absolute right-0 top-1/2 -translate-y-1/2 z-10 h-12 w-12 items-center justify-center rounded-full bg-black/60 hover:bg-black/80 border border-white/10 text-white transition disabled:opacity-30 disabled:cursor-not-allowed"
+                aria-label="Cuộn phải"
+              >
+                <ChevronRight className="w-6 h-6" />
+              </button>
+            </>
+          )}
+
+          <div
+            ref={isRow ? rowRef : undefined}
+            className={
+              isRow
+                ? 'flex gap-4 overflow-x-auto overflow-y-hidden scrollbar-hide pb-2 -mx-4 px-4 sm:mx-0 sm:px-0 scroll-smooth'
+                : 'grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4'
+            }
+          >
           {movies.map((movie) => (
             <Link
               key={movie.id || movie._id || movie.slug}
               to={`/phim/${movie.slug}`}
-              className="group relative bg-gray-900 rounded-lg overflow-hidden hover:scale-105 transition-transform duration-300 cursor-pointer flex flex-col"
+              className={
+                isRow
+                  ? 'group relative shrink-0 w-36 sm:w-44 md:w-48 lg:w-52 bg-gray-900 rounded-lg overflow-hidden hover:scale-105 transition-transform duration-300 cursor-pointer'
+                  : 'group relative bg-gray-900 rounded-lg overflow-hidden hover:scale-105 transition-transform duration-300 cursor-pointer flex flex-col'
+              }
             >
               {/* Movie Poster */}
               <div className="aspect-2/3 bg-linear-to-br from-gray-800 to-gray-900 relative">
@@ -109,6 +190,7 @@ function MovieList({ movies: externalMovies, title = 'Phim mới cập nhật' }
               </div>
             </Link>
           ))}
+          </div>
         </div>
       )}
     </div>
