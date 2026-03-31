@@ -61,7 +61,7 @@ function HeroSlider() {
 
   if (sliderMovies.length === 0) {
     return (
-      <div className="relative h-[80vh] bg-gradient-to-b from-black via-gray-900 to-black flex items-center justify-center">
+      <div className="relative h-[60vh] md:h-[80vh] bg-gradient-to-b from-black via-gray-900 to-black flex items-center justify-center">
         <div className="text-gray-400">Đang tải phim...</div>
       </div>
     );
@@ -71,7 +71,7 @@ function HeroSlider() {
 
   return (
     <div
-      className="relative h-[80vh] overflow-hidden"
+      className="relative h-[60vh] md:h-[80vh] overflow-hidden"
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
@@ -146,19 +146,19 @@ function HeroSlider() {
                   )}
 
                   {/* Action Buttons */}
-                  <div className="flex gap-3 pt-2">
+                  <div className="flex gap-2 md:gap-3 pt-2">
                     <Link
                       to={`/phim/${movie.slug}`}
-                      className="px-6 py-3 bg-red-600 hover:bg-red-700 text-white font-semibold rounded flex items-center gap-2 transition-all hover:scale-105 active:scale-95"
+                      className="px-3 py-2 md:px-6 md:py-3 text-xs md:text-base bg-red-600 hover:bg-red-700 text-white font-semibold rounded flex items-center gap-1 md:gap-2 transition-all hover:scale-105 active:scale-95"
                     >
-                      <Play className="w-5 h-5" fill="currentColor" />
+                      <Play className="w-4 h-4 md:w-5 md:h-5" fill="currentColor" />
                       Xem ngay
                     </Link>
                     <Link
                       to={`/phim/${movie.slug}`}
-                      className="px-6 py-3 bg-gray-700/80 hover:bg-gray-700 text-white font-semibold rounded flex items-center gap-2 transition-all border border-gray-600"
+                      className="px-3 py-2 md:px-6 md:py-3 text-xs md:text-base bg-gray-700/80 hover:bg-gray-700 text-white font-semibold rounded flex items-center gap-1 md:gap-2 transition-all border border-gray-600"
                     >
-                      <Info className="w-5 h-5" />
+                      <Info className="w-4 h-4 md:w-5 md:h-5" />
                       Thông tin
                     </Link>
                   </div>

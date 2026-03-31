@@ -93,9 +93,9 @@ function Navbar() {
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <div className="flex items-center space-x-8">
-            <Link to="/" className="flex items-center space-x-2">
-              <Film className="w-8 h-8 text-red-600" />
-              <span className="text-red-600 text-2xl font-bold tracking-tight">
+            <Link to="/" className="flex items-center space-x-1.5 md:space-x-2">
+              <Film className="w-6 h-6 md:w-8 md:h-8 text-red-600" />
+              <span className="text-red-600 text-lg md:text-2xl font-bold tracking-tight">
                 QTCinema
               </span>
             </Link>
