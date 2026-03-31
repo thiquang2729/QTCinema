@@ -121,8 +121,8 @@ function MovieList({
             ref={isRow ? rowRef : undefined}
             className={
               isRow
-                ? 'flex gap-4 overflow-x-auto overflow-y-hidden scrollbar-hide pb-2 -mx-4 px-4 sm:mx-0 sm:px-0 scroll-smooth'
-                : 'grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4'
+                ? 'flex gap-4 overflow-x-auto scrollbar-hide py-4 -mx-4 px-4 sm:mx-0 sm:px-0 scroll-smooth'
+                : 'grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4 py-4 px-4'
             }
           >
           {movies.map((movie) => (
@@ -132,17 +132,17 @@ function MovieList({
               onClick={() => window.scrollTo({ top: 0, left: 0, behavior: 'smooth' })}
               className={
                 isRow
-                  ? 'group relative shrink-0 w-36 sm:w-44 md:w-48 lg:w-52 bg-gray-900 rounded-lg overflow-hidden hover:scale-105 transition-transform duration-300 cursor-pointer'
-                  : 'group relative bg-gray-900 rounded-lg overflow-hidden hover:scale-105 transition-transform duration-300 cursor-pointer flex flex-col'
+                  ? 'group relative shrink-0 w-36 sm:w-44 md:w-48 lg:w-52 bg-black rounded-lg overflow-hidden hover:scale-105 transition-transform duration-300 cursor-pointer'
+                  : 'group relative bg-black rounded-lg overflow-hidden hover:scale-105 transition-transform duration-300 cursor-pointer flex flex-col'
               }
             >
               {/* Movie Poster */}
-              <div className="aspect-2/3 bg-linear-to-br from-gray-800 to-gray-900 relative">
+              <div className="aspect-2/3 bg-linear-to-br  from-black to-black relative">
                 {movie.thumbUrl ? (
                   <img
                     src={movie.thumbUrl}
                     alt={movie.title}
-                    className="w-full h-full object-cover"
+                    className="w-full h-full object-cover rounded-lg "
                     loading="lazy"
                   />
                 ) : (
@@ -153,11 +153,11 @@ function MovieList({
 
                 {/* Quality & Episode Badge */}
                 <div className="absolute top-2 left-2 flex gap-2">
-                  {movie.quality && (
+                  {/* {movie.quality && (
                     <span className="px-2 py-1 bg-red-600 text-white text-xs font-bold rounded">
                       {movie.quality}
                     </span>
-                  )}
+                  )} */}
                   {movie.lang && (
                     <span className="px-2 py-1 bg-blue-600 text-white text-xs font-bold rounded">
                       {movie.lang}
@@ -166,7 +166,7 @@ function MovieList({
                 </div>
 
                 {movie.episode_current && (
-                  <div className="absolute bottom-2 left-2">
+                  <div className="absolute top-2 right-2">
                     <span className="px-2 py-1 bg-black/70 text-white text-xs font-bold rounded">
                       {movie.episode_current}
                     </span>
@@ -174,8 +174,8 @@ function MovieList({
                 )}
               </div>
 
-              {/* Movie Info Overlay */}
-              <div className="absolute inset-0 bg-linear-to-t from-black via-black/60 to-transparent opacity-100 flex flex-col justify-end p-4">
+              {/* Movie Info - Below Poster */}
+              <div className="p-3">
                 <h3 className="font-semibold text-white mb-1 text-sm line-clamp-2">
                   {movie.title}
                 </h3>

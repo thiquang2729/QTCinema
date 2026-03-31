@@ -83,8 +83,10 @@ function Navbar() {
 
   return (
     <nav
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-        isScrolled ? 'bg-black' : 'bg-linear-to-b from-black/80 to-transparent'
+      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 backdrop-blur-xl border-b ${
+        isScrolled
+          ? 'bg-black/60 border-transparent shadow-lg shadow-black/20'
+          : 'bg-black/20 border-transparent'
       }`}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -286,7 +288,7 @@ function Navbar() {
 
         {/* Mobile Menu */}
         {isMenuOpen && (
-          <div className="md:hidden bg-black/95 border-t border-gray-800">
+          <div className="md:hidden bg-black/40 backdrop-blur-xl border-t border-white/10">
             <div className="px-2 pt-2 pb-3 space-y-1">
               <Link
                 to="/"

@@ -41,6 +41,20 @@ function VideoPlayer({
   const gestureStartYRef = useRef(0);
   const gestureStartValueRef = useRef(0);
 
+  // Cập nhật document.title để media player bên ngoài hiển thị tên phim + tập
+  useEffect(() => {
+    const originalTitle = document.title;
+    if (title || episodeLabel) {
+      const parts = [];
+      if (title) parts.push(title);
+      if (episodeLabel) parts.push(episodeLabel);
+      document.title = parts.join(' - ');
+    }
+    return () => {
+      document.title = originalTitle;
+    };
+  }, [title, episodeLabel]);
+
   // Khởi tạo HLS khi src thay đổi
   useEffect(() => {
     const video = videoRef.current;

@@ -137,7 +137,7 @@ function WatchPage() {
                 <h3 className="text-sm font-semibold text-red-500 mb-2">
                   {server.server_name}
                 </h3>
-                <div className="flex flex-wrap gap-2">
+                <div className="grid grid-cols-4 xl:grid-cols-5 gap-2">
                   {server.server_data.map((episode, eIndex) => {
                     const isActive =
                       currentEpisode?.serverIndex === sIndex &&
@@ -156,7 +156,7 @@ function WatchPage() {
                             ...episode,
                           });
                         }}
-                        className={`px-3 py-1.5 rounded text-xs font-medium border transition-all ${
+                        className={`py-1.5 rounded text-xs font-medium border transition-all text-center ${
                           isActive
                             ? 'bg-red-600 border-red-500 text-white'
                             : 'bg-gray-900 border-gray-700 text-gray-200 hover:bg-red-700 hover:border-red-500'
