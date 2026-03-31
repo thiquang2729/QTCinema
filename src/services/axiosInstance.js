@@ -1,4 +1,6 @@
 import axios from 'axios';
+import { store } from '../redux/store';
+import { startRequest, endRequest } from '../redux/slices/uiSlice';
 
 // Tạo axios instance để gọi backend local (không gọi trực tiếp API bên ngoài)
 const axiosInstance = axios.create({
@@ -11,9 +13,14 @@ const axiosInstance = axios.create({
   },
 });
 
-// Request interceptor - thêm token vào header
+// Request interceptor - thêm token vào header và start loading
 axiosInstance.interceptors.request.use(
   (config) => {
+    // Không hiện loading cho các request có hideLoader
+    if (!config.hideLoader) {
+      store.dispatch(startRequest());
+    }
+
     const token = localStorage.getItem('token');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
@@ -21,16 +28,26 @@ axiosInstance.interceptors.request.use(
     return config;
   },
   (error) => {
+    if (error.config && !error.config.hideLoader) {
+      store.dispatch(endRequest());
+    }
     return Promise.reject(error);
   }
 );
 
-// Response interceptor - xử lý lỗi chung
+// Response interceptor - xử lý lỗi chung và end loading
 axiosInstance.interceptors.response.use(
   (response) => {
+    if (!response.config.hideLoader) {
+      store.dispatch(endRequest());
+    }
     return response;
   },
   (error) => {
+    if (error.config && !error.config.hideLoader) {
+      store.dispatch(endRequest());
+    }
+    
     if (error.response) {
       // Xử lý các mã lỗi HTTP
       switch (error.response.status) {

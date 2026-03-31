@@ -6,11 +6,15 @@ import SearchPage from './pages/SearchPage';
 import WatchPage from './pages/WatchPage';
 import MovieListPage from './pages/MovieListPage';
 import Footer from './components/Footer';
+import GlobalLoading from './components/GlobalLoading';
 
 function App() {
   return (
     <Router>
       <div className="min-h-screen bg-black">
+        {/* Hỗ trợ loading global cực xịn sò */}
+        <GlobalLoading />
+        
         {/* Navbar */}
         <Navbar />
 

@@ -51,6 +51,7 @@ function Navbar() {
         setSearchLoading(true);
         const response = await axiosInstance.get(`/movies/search/${encodeURIComponent(keyword)}`, {
           params: { page: 1, limit: 8 },
+          hideLoader: true,
         });
         const items = response.data?.items || [];
         setSearchSuggestions(items);
