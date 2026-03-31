@@ -257,6 +257,17 @@ function VideoPlayer({
     }, 5000);
   };
 
+  // Add effect to trigger when `isPlaying` changes so controls automatically hide
+  // when video is playing without mouse movement.
+  useEffect(() => {
+    resetHideControlsTimer();
+    return () => {
+      if (hideControlsTimeoutRef.current) {
+        clearTimeout(hideControlsTimeoutRef.current);
+      }
+    };
+  }, [isPlaying]);
+
   const handleMouseMove = () => {
     resetHideControlsTimer();
   };
