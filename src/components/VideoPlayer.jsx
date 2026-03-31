@@ -268,7 +268,8 @@ function VideoPlayer({
     };
   }, [isPlaying]);
 
-  const handleMouseMove = () => {
+  const handlePointerMove = (e) => {
+    if (e.pointerType === 'touch') return;
     resetHideControlsTimer();
   };
 
@@ -296,10 +297,17 @@ function VideoPlayer({
     if (tapCountRef.current === 1) {
       // Đợi xem có tap thứ 2 không
       tapTimeoutRef.current = setTimeout(() => {
-        // Single tap → play/pause
-        if (tapCountRef.current === 1) {
-          togglePlay();
-        }
+        // Single tap → ẩn/hiện controls
+        setControlsVisible((prev) => {
+          const next = !prev;
+          if (next && isPlaying) {
+            if (hideControlsTimeoutRef.current) clearTimeout(hideControlsTimeoutRef.current);
+            hideControlsTimeoutRef.current = setTimeout(() => setControlsVisible(false), 5000);
+          } else if (!next) {
+            if (hideControlsTimeoutRef.current) clearTimeout(hideControlsTimeoutRef.current);
+          }
+          return next;
+        });
         tapCountRef.current = 0;
       }, 250);
     } else if (tapCountRef.current === 2) {
@@ -393,7 +401,7 @@ function VideoPlayer({
     <div
       ref={containerRef}
       className={containerClass}
-      onMouseMove={handleMouseMove}
+      onPointerMove={handlePointerMove}
 
       tabIndex={0}
     >

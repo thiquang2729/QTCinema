@@ -41,7 +41,7 @@ function ImageGallery({ backdrops = [], posters = [] }) {
           {backdrops.length > 0 && (
             <button
               onClick={() => setActiveTab('backdrops')}
-              className={`px-4 py-2 rounded transition-all ${
+              className={`px-3 py-1.5 text-sm rounded transition-all ${
                 activeTab === 'backdrops'
                   ? 'bg-red-600 text-white'
                   : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
@@ -53,7 +53,7 @@ function ImageGallery({ backdrops = [], posters = [] }) {
           {posters.length > 0 && (
             <button
               onClick={() => setActiveTab('posters')}
-              className={`px-4 py-2 rounded transition-all ${
+              className={`px-3 py-1.5 text-sm rounded transition-all ${
                 activeTab === 'posters'
                   ? 'bg-red-600 text-white'
                   : 'bg-gray-800 text-gray-300 hover:bg-gray-700'

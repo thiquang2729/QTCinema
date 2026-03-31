@@ -121,10 +121,17 @@ function MovieDetail() {
       {/* Hero Section with Backdrop */}
       <div className="relative h-[70vh]">
         <div className="absolute inset-0">
+          {/* Mobile Image (Thumb) */}
+          <img
+            src={movie.thumbUrl || movie.posterPath || heroBackdrop}
+            alt={movie.title}
+            className="w-full h-full object-cover object-center md:hidden"
+          />
+          {/* Desktop Image (Backdrop) */}
           <img
             src={heroBackdrop || movie.thumbUrl || movie.posterPath}
             alt={movie.title}
-            className="w-full h-full object-cover"
+            className="hidden md:block w-full h-full object-cover object-center"
           />
           <div className="absolute inset-0 bg-linear-to-r from-black via-black/80 to-transparent"></div>
           <div className="absolute inset-0 bg-linear-to-t from-black via-transparent to-transparent"></div>
@@ -133,7 +140,7 @@ function MovieDetail() {
         {/* Back Button */}
         <button
           onClick={() => navigate(-1)}
-          className="absolute top-5 left-10 z-10 p-2 bg-black/50 hover:bg-black/80 rounded-full transition-all"
+          className="absolute top-5 left-5 z-10 p-2 bg-black/50 hover:bg-black/80 rounded-full transition-all"
         >
           <ArrowLeft className="w-6 h-6" />
         </button>
@@ -193,9 +200,9 @@ function MovieDetail() {
               {/* Play Button */}
               <button
                 onClick={handlePlayDefault}
-                className="px-8 py-4 bg-red-600 hover:bg-red-700 text-white font-bold rounded flex items-center gap-3 transition-all hover:scale-105"
+                className="px-6 py-3 md:px-8 md:py-4 bg-red-600 hover:bg-red-700 text-white font-bold rounded flex items-center gap-2 md:gap-3 transition-all hover:scale-105"
               >
-                <Play className="w-6 h-6" fill="currentColor" />
+                <Play className="w-5 h-5 md:w-6 md:h-6" fill="currentColor" />
                 Xem phim
               </button>
             </div>
@@ -204,14 +211,17 @@ function MovieDetail() {
       </div>
 
       {/* Content Section */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-8">
             {/* Description */}
             <div>
               <h2 className="text-2xl font-bold mb-4">Nội dung phim</h2>
-              <p className="text-gray-300 leading-relaxed">{movie.description}</p>
+              <div 
+                className="text-gray-300 leading-relaxed prose prose-invert max-w-none space-y-4"
+                dangerouslySetInnerHTML={{ __html: movie.description }}
+              />
             </div>
 
             {/* Episodes */}

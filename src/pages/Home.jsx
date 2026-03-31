@@ -158,14 +158,14 @@ function Home() {
       <HeroSlider />
 
       {/* Movie List Section */}
-      <div className="bg-black py-12">
+      <div className="bg-black py-6">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <MovieList layout="row" />
         </div>
       </div>
 
       {/* Korean Movies Section */}
-      <div className="bg-black pb-12">
+      <div className="bg-black pb-6">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           {koreanLoading ? (
             <div className="flex justify-center items-center min-h-[140px]">
@@ -200,7 +200,7 @@ function Home() {
       </div>
 
       {/* China Movies Section */}
-      <div className="bg-black pb-12">
+      <div className="bg-black pb-6">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           {chinaLoading ? (
             <div className="flex justify-center items-center min-h-[140px]">
@@ -235,7 +235,7 @@ function Home() {
       </div>
 
       {/* Europe Movies Section */}
-      <div className="bg-black pb-12">
+      <div className="bg-black pb-6">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           {europeLoading ? (
             <div className="flex justify-center items-center min-h-[140px]">
@@ -270,7 +270,7 @@ function Home() {
       </div>
 
       {/* Animation Movies Section */}
-      <div className="bg-black pb-12">
+      <div className="bg-black pb-6">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           {animationLoading ? (
             <div className="flex justify-center items-center min-h-[140px]">
