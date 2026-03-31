@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useSelector } from 'react-redux';
 import { Link } from 'react-router-dom';
 import { ChevronLeft, ChevronRight, Play, Info } from 'lucide-react';
@@ -7,6 +7,28 @@ function HeroSlider() {
   const { movies } = useSelector((state) => state.movies);
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isAutoPlaying, setIsAutoPlaying] = useState(true);
+  const touchStartX = useRef(0);
+  const touchEndX = useRef(0);
+
+  const handleTouchStart = (e) => {
+    touchStartX.current = e.touches[0].clientX;
+  };
+
+  const handleTouchMove = (e) => {
+    touchEndX.current = e.touches[0].clientX;
+  };
+
+  const handleTouchEnd = () => {
+    const diff = touchStartX.current - touchEndX.current;
+    const minSwipeDistance = 50;
+    if (Math.abs(diff) > minSwipeDistance) {
+      if (diff > 0) {
+        goToNext();
+      } else {
+        goToPrevious();
+      }
+    }
+  };
 
   // Lấy 5 phim đầu tiên cho slider
   const sliderMovies = movies.slice(0, 5);
@@ -48,7 +70,12 @@ function HeroSlider() {
   const currentMovie = sliderMovies[currentSlide];
 
   return (
-    <div className="relative h-[80vh] overflow-hidden">
+    <div
+      className="relative h-[80vh] overflow-hidden"
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
+    >
       {/* Slides Container */}
       <div className="relative h-full">
         {sliderMovies.map((movie, index) => (
@@ -142,17 +169,17 @@ function HeroSlider() {
         ))}
       </div>
 
-      {/* Navigation Arrows */}
+      {/* Navigation Arrows - ẩn trên mobile */}
       <button
         onClick={goToPrevious}
-        className="absolute left-4 top-1/2 -translate-y-1/2 p-2 bg-black/50 hover:bg-black/80 text-white rounded-full transition-all z-10"
+        className="hidden md:block absolute left-4 top-1/2 -translate-y-1/2 p-2 bg-black/50 hover:bg-black/80 text-white rounded-full transition-all z-10"
         aria-label="Previous slide"
       >
         <ChevronLeft className="w-8 h-8" />
       </button>
       <button
         onClick={goToNext}
-        className="absolute right-4 top-1/2 -translate-y-1/2 p-2 bg-black/50 hover:bg-black/80 text-white rounded-full transition-all z-10"
+        className="hidden md:block absolute right-4 top-1/2 -translate-y-1/2 p-2 bg-black/50 hover:bg-black/80 text-white rounded-full transition-all z-10"
         aria-label="Next slide"
       >
         <ChevronRight className="w-8 h-8" />
