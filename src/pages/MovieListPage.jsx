@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
 import { useParams, useSearchParams, useNavigate } from 'react-router-dom';
-import { fetchMoviesByList } from '../redux/slices/movieSlice';
+import { useGetMoviesByListQuery } from '../redux/services/movieApi';
 import MovieList from '../components/MovieList';
 
 const LIST_OPTIONS = [
@@ -216,9 +215,6 @@ function MovieListPage() {
   const { slug } = useParams();
   const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
-  const dispatch = useDispatch();
-
-  const { movies, loading, error, pagination } = useSelector((state) => state.movies);
 
   const currentPage = Number(searchParams.get('page') || 1);
   const sortField = searchParams.get('sort_field') || 'modified.time';
@@ -227,24 +223,24 @@ function MovieListPage() {
   const country = searchParams.get('country') || '';
   const year = searchParams.get('year') || '';
 
-  useEffect(() => {
-    if (!slug) return;
+  const { data, isLoading: loading, error } = useGetMoviesByListQuery(
+    {
+      slug,
+      params: {
+        page: currentPage,
+        limit: 24,
+        sort_field: sortField,
+        sort_type: sortType,
+        category: category || undefined,
+        country: country || undefined,
+        year: year || undefined,
+      },
+    },
+    { skip: !slug }
+  );
 
-    dispatch(
-      fetchMoviesByList({
-        slug,
-        params: {
-          page: currentPage,
-          limit: 24,
-          sort_field: sortField,
-          sort_type: sortType,
-          category: category || undefined,
-          country: country || undefined,
-          year: year || undefined,
-        },
-      })
-    );
-  }, [dispatch, slug, currentPage, sortField, sortType, category, country, year]);
+  const movies = data?.items || [];
+  const pagination = data?.pagination || {};
 
   const handlePageChange = (page) => {
     if (page === currentPage || page < 1) return;

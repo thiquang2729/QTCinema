@@ -1,8 +1,16 @@
 import { useEffect, useRef, useState } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
 import { Link } from 'react-router-dom';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { fetchMovies } from '../redux/slices/movieSlice';
+import { useGetHomeMoviesQuery } from '../redux/services/movieApi';
+import gsap from 'gsap';
+
+const formatLanguage = (lang) => {
+  if (!lang) return '';
+  return lang
+    .replace(/Thuyết [Mm]inh/g, 'TM')
+    .replace(/Lồng [Tt]iếng/g, 'LT')
+    .replace(/\s*\+\s*/g, ' + ');
+};
 
 /**
  * MovieList - Grid hiển thị danh sách phim dạng Netflix
@@ -14,24 +22,53 @@ function MovieList({
   title = 'Phim mới cập nhật',
   layout = 'grid', // 'grid' | 'row'
   titleRight = null, // ReactNode hiển thị bên phải title
+  loading: externalLoading = false,
+  error: externalError = null,
 }) {
-  const dispatch = useDispatch();
-  const { movies: homeMovies, loading, error } = useSelector((state) => state.movies);
-
   const isUsingExternalMovies = Array.isArray(externalMovies);
-  const movies = isUsingExternalMovies ? externalMovies : homeMovies;
+
+  const { data: homeData, isLoading: homeLoading, error: homeError } = useGetHomeMoviesQuery(undefined, {
+    skip: isUsingExternalMovies,
+  });
+
+  const movies = isUsingExternalMovies ? externalMovies : (homeData?.items || []);
+  const loading = isUsingExternalMovies ? externalLoading : homeLoading;
+  const error = isUsingExternalMovies ? externalError : homeError;
+
   const isRow = layout === 'row';
 
   const rowRef = useRef(null);
+  const containerRef = useRef(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(false);
 
+  // Chuỗi định danh danh sách phim để tránh chạy lại animation khi tham chiếu array thay đổi nhưng data giữ nguyên
+  const moviesIdString = (movies || []).map((m) => m.id || m._id || m.slug).join(',');
+
+  // GSAP animation for movie cards staggered entrance
   useEffect(() => {
-    // Chỉ tự fetch khi dùng cho trang Home (không truyền movies từ ngoài vào)
-    if (!isUsingExternalMovies) {
-      dispatch(fetchMovies());
+    if (movies && movies.length > 0 && containerRef.current) {
+      const cards = containerRef.current.querySelectorAll('.movie-card-item');
+      if (cards.length > 0) {
+        gsap.killTweensOf(cards);
+        
+        gsap.fromTo(cards,
+          { opacity: 0, y: 30 },
+          {
+            opacity: 1,
+            y: 0,
+            duration: 0.6,
+            stagger: {
+              amount: 0.35,
+              grid: 'auto'
+            },
+            ease: 'power2.out',
+            clearProps: 'transform'
+          }
+        );
+      }
     }
-  }, [dispatch, isUsingExternalMovies]);
+  }, [moviesIdString]);
 
   // Cập nhật trạng thái có thể scroll trái/phải (chỉ dùng cho layout row)
   useEffect(() => {
@@ -40,18 +77,34 @@ function MovieList({
     const el = rowRef.current;
     if (!el) return;
 
-    const update = () => {
+    let timeoutId = null;
+
+    const updateState = () => {
       const { scrollLeft, scrollWidth, clientWidth } = el;
-      setCanScrollLeft(scrollLeft > 0);
-      setCanScrollRight(scrollLeft + clientWidth < scrollWidth - 1);
+      setCanScrollLeft(scrollLeft > 2);
+      setCanScrollRight(scrollLeft + clientWidth < scrollWidth - 4);
     };
 
-    update();
-    el.addEventListener('scroll', update, { passive: true });
-    window.addEventListener('resize', update);
+    const debouncedUpdate = () => {
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
+      timeoutId = setTimeout(() => {
+        updateState();
+        timeoutId = null;
+      }, 80);
+    };
+
+    // Chạy lần đầu ngay lập tức
+    updateState();
+
+    el.addEventListener('scroll', debouncedUpdate, { passive: true });
+    window.addEventListener('resize', updateState);
+
     return () => {
-      el.removeEventListener('scroll', update);
-      window.removeEventListener('resize', update);
+      if (timeoutId) clearTimeout(timeoutId);
+      el.removeEventListener('scroll', debouncedUpdate);
+      window.removeEventListener('resize', updateState);
     };
   }, [isRow, movies?.length]);
 
@@ -59,7 +112,61 @@ function MovieList({
     const el = rowRef.current;
     if (!el) return;
     const amount = Math.round(el.clientWidth * 0.8);
-    el.scrollBy({ left: direction * amount, behavior: 'smooth' });
+    const targetScroll = el.scrollLeft + direction * amount;
+    
+    // Sử dụng GSAP để tạo hiệu ứng cuộn mượt mà có giảm tốc nghệ thuật (custom easing)
+    gsap.to(el, {
+      scrollLeft: targetScroll,
+      duration: 0.75,
+      ease: 'power2.out',
+      overwrite: 'auto'
+    });
+  };
+
+  const handleMouseEnter = (e) => {
+    const card = e.currentTarget;
+    const img = card.querySelector('.movie-poster-img');
+    
+    gsap.killTweensOf([card, img]);
+    
+    gsap.to(card, {
+      scale: 1.05,
+      y: -6,
+      duration: 0.3,
+      ease: 'power2.out'
+    });
+    
+    if (img) {
+      gsap.to(img, {
+        scale: 1.1,
+        duration: 0.3,
+        ease: 'power2.out'
+      });
+    }
+  };
+
+  const handleMouseLeave = (e) => {
+    const card = e.currentTarget;
+    const img = card.querySelector('.movie-poster-img');
+    
+    gsap.killTweensOf([card, img]);
+    
+    gsap.to(card, {
+      scale: 1,
+      y: 0,
+      duration: 0.3,
+      ease: 'power2.out',
+      clearProps: 'transform'
+    });
+    
+    if (img) {
+      gsap.to(img, {
+        scale: 1,
+        duration: 0.3,
+        ease: 'power2.out',
+        clearProps: 'transform'
+      });
+    }
   };
 
   // Chỉ hiển thị trạng thái loading / error khi đang dùng dữ liệu trang Home
@@ -118,10 +225,13 @@ function MovieList({
           )}
 
           <div
-            ref={isRow ? rowRef : undefined}
+            ref={(el) => {
+              containerRef.current = el;
+              if (isRow) rowRef.current = el;
+            }}
             className={
               isRow
-                ? 'flex gap-4 overflow-x-auto scrollbar-hide py-4 -mx-4 px-4 sm:mx-0 sm:px-0 scroll-smooth'
+                ? 'flex gap-4 overflow-x-auto scrollbar-hide py-4 -mx-4 px-4 sm:mx-0 sm:px-0'
                 : 'grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4 py-4 px-4'
             }
           >
@@ -130,19 +240,21 @@ function MovieList({
               key={movie.id || movie._id || movie.slug}
               to={`/phim/${movie.slug}`}
               onClick={() => window.scrollTo({ top: 0, left: 0, behavior: 'smooth' })}
+              onMouseEnter={handleMouseEnter}
+              onMouseLeave={handleMouseLeave}
               className={
-                isRow
-                  ? 'group relative shrink-0 w-36 sm:w-44 md:w-48 lg:w-52 bg-black rounded-lg overflow-hidden hover:scale-105 transition-transform duration-300 cursor-pointer'
-                  : 'group relative bg-black rounded-lg overflow-hidden hover:scale-105 transition-transform duration-300 cursor-pointer flex flex-col'
+                (isRow
+                  ? 'group relative shrink-0 w-36 sm:w-44 md:w-48 lg:w-52 bg-black rounded-lg overflow-hidden cursor-pointer will-change-transform'
+                  : 'group relative bg-black rounded-lg overflow-hidden cursor-pointer flex flex-col will-change-transform') + ' movie-card-item opacity-0'
               }
             >
               {/* Movie Poster */}
-              <div className="aspect-2/3 bg-linear-to-br  from-black to-black relative">
+              <div className="aspect-2/3 bg-linear-to-br from-black to-black relative overflow-hidden rounded-lg">
                 {movie.thumbUrl ? (
                   <img
                     src={movie.thumbUrl}
                     alt={movie.title}
-                    className="w-full h-full object-cover rounded-lg "
+                    className="w-full h-full object-cover rounded-lg movie-poster-img"
                     loading="lazy"
                   />
                 ) : (
@@ -154,20 +266,20 @@ function MovieList({
                 {/* Quality & Episode Badge */}
                 <div className="absolute top-2 left-2 flex gap-2">
                   {/* {movie.quality && (
-                    <span className="px-2 py-1 bg-red-600 text-white text-xs font-bold rounded">
+                    <span className="inline-flex items-center h-[22px] px-2 bg-red-600 text-white text-xs font-bold rounded">
                       {movie.quality}
                     </span>
                   )} */}
                   {movie.lang && (
-                    <span className="px-2 py-1 bg-blue-600 text-white text-xs font-bold rounded">
-                      {movie.lang}
+                    <span className="inline-flex items-center h-[22px] px-2 bg-blue-600 text-white text-xs font-bold rounded">
+                      {formatLanguage(movie.lang)}
                     </span>
                   )}
                 </div>
 
                 {movie.episode_current && (
-                  <div className="absolute top-2 right-2">
-                    <span className="px-2 py-1 bg-black/70 text-white text-xs font-bold rounded">
+                  <div className="absolute top-2 right-2 flex">
+                    <span className="inline-flex items-center h-[22px] px-2 bg-black/70 text-white text-xs font-bold rounded">
                       {movie.episode_current}
                     </span>
                   </div>

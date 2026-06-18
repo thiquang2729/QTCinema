@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
-import { useDispatch, useSelector } from 'react-redux';
-import { fetchMovieById, fetchMovieImages } from '../redux/slices/movieSlice';
+import { useGetMovieByIdQuery, useGetMovieImagesQuery } from '../redux/services/movieApi';
 import { ArrowLeft } from 'lucide-react';
 import VideoPlayer from '../components/VideoPlayer';
 
@@ -9,22 +8,17 @@ function WatchPage() {
   const { slug } = useParams();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const dispatch = useDispatch();
-  const { selectedMovie, movieImages, loading, error } = useSelector((state) => state.movies);
+
+  const { data: movieData, isLoading: loading, error } = useGetMovieByIdQuery(slug, { skip: !slug });
+  const { data: movieImagesRaw } = useGetMovieImagesQuery(slug, { skip: !slug });
+
+  const movie = movieData?.data || movieData;
+  const movieImages = movieImagesRaw?.data || movieImagesRaw;
 
   const [currentEpisode, setCurrentEpisode] = useState(null);
   const [serverIndex, setServerIndex] = useState(
     Number(searchParams.get('server')) || 0
   );
-
-  useEffect(() => {
-    if (slug) {
-      dispatch(fetchMovieById(slug));
-      dispatch(fetchMovieImages(slug));
-    }
-  }, [slug, dispatch]);
-
-  const movie = selectedMovie;
 
   const findEpisode = (movieData, sIndex, eIndex) => {
     if (!movieData?.episodes?.length) return null;

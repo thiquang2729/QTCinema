@@ -1,9 +1,9 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useDispatch, useSelector } from 'react-redux';
-import { fetchMovieById, fetchMovieImages, fetchMoviePeoples, fetchMovieKeywords } from '../redux/slices/movieSlice';
+import { useGetMovieByIdQuery, useGetMovieImagesQuery } from '../redux/services/movieApi';
 import { ArrowLeft, Play, Star, Calendar, Clock, Eye, Flag } from 'lucide-react';
 import ImageGallery from '../components/ImageGallery';
+import gsap from 'gsap';
 
 const COUNTRY_FLAG_EMOJI_BY_SLUG = {
   'trung-quoc': '🇨🇳',
@@ -63,18 +63,59 @@ function getCountryFlagEmoji(country) {
 function MovieDetail() {
   const { slug } = useParams();
   const navigate = useNavigate();
-  const dispatch = useDispatch();
-  const { selectedMovie, movieImages, moviePeoples, movieKeywords, loading, imagesLoading, error } = useSelector((state) => state.movies);
-  const movie = selectedMovie;
+  const pageRef = useRef(null);
 
+  const { data: movieData, isLoading: loading, error } = useGetMovieByIdQuery(slug, { skip: !slug });
+  const { data: movieImagesRaw } = useGetMovieImagesQuery(slug, { skip: !slug });
+
+  const movie = movieData?.data || movieData;
+  const movieImages = movieImagesRaw?.data || movieImagesRaw;
+
+  // GSAP animation on details page mount/load
   useEffect(() => {
-    if (slug) {
-      dispatch(fetchMovieById(slug));
-      dispatch(fetchMovieImages(slug));
-      // dispatch(fetchMoviePeoples(slug));
-      // dispatch(fetchMovieKeywords(slug));
+    if (movie && pageRef.current) {
+      const titleGroup = pageRef.current.querySelector('.detail-title-group');
+      const meta = pageRef.current.querySelector('.detail-meta');
+      const btn = pageRef.current.querySelector('.detail-play-btn');
+      const poster = pageRef.current.querySelector('.detail-poster');
+      const content = pageRef.current.querySelector('.detail-content');
+
+      const ctx = gsap.context(() => {
+        const tl = gsap.timeline({ defaults: { ease: 'power3.out' } });
+
+        // Set initial state
+        gsap.set([titleGroup, meta, btn], { y: 30, opacity: 0 });
+        if (poster) gsap.set(poster, { scale: 1.05, opacity: 0 });
+        if (content) gsap.set(content, { y: 20, opacity: 0 });
+
+        // Run animations
+        tl.to([titleGroup, meta, btn], {
+          y: 0,
+          opacity: 1,
+          duration: 0.8,
+          stagger: 0.15,
+        });
+
+        if (poster) {
+          tl.to(poster, {
+            scale: 1,
+            opacity: 1,
+            duration: 0.8,
+          }, '-=0.6');
+        }
+
+        if (content) {
+          tl.to(content, {
+            y: 0,
+            opacity: 1,
+            duration: 0.8,
+          }, '-=0.6');
+        }
+      }, pageRef);
+
+      return () => ctx.revert();
     }
-  }, [slug, dispatch]);
+  }, [movie]);
 
   const handlePlayDefault = () => {
     if (!movie) return;
@@ -109,7 +150,7 @@ function MovieDetail() {
     );
   }
 
-  if (!selectedMovie) return null;
+  if (!movie) return null;
 
   const heroBackdrop =
     movieImages?.backdrops?.[0]?.urls?.w1280 ||
@@ -117,7 +158,7 @@ function MovieDetail() {
     null;
 
   return (
-    <div className="min-h-screen bg-black text-white">
+    <div ref={pageRef} className="min-h-screen bg-black text-white">
       {/* Hero Section with Backdrop */}
       <div className="relative h-[70vh]">
         <div className="absolute inset-0">
@@ -148,12 +189,12 @@ function MovieDetail() {
         {/* Movie Info */}
         <div className="relative h-full flex items-end pb-16">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
-            <div className="max-w-3xl">
+            <div className="max-w-3xl detail-title-group">
               <h1 className="text-4xl md:text-6xl font-bold mb-4">{movie.title}</h1>
               <p className="text-gray-300 text-lg mb-4">{movie.originalTitle}</p>
 
               {/* Meta Info */}
-              <div className="flex flex-wrap items-center gap-4 mb-6">
+              <div className="flex flex-wrap items-center gap-4 mb-6 detail-meta">
                 {movie.rating > 0 && (
                   <div className="flex items-center gap-1 text-yellow-500">
                     <Star className="w-5 h-5" fill="currentColor" />
@@ -200,7 +241,7 @@ function MovieDetail() {
               {/* Play Button */}
               <button
                 onClick={handlePlayDefault}
-                className="px-6 py-3 md:px-8 md:py-4 bg-red-600 hover:bg-red-700 text-white font-bold rounded flex items-center gap-2 md:gap-3 transition-all hover:scale-105"
+                className="px-6 py-3 md:px-8 md:py-4 bg-red-600 hover:bg-red-700 text-white font-bold rounded flex items-center gap-2 md:gap-3 transition-all hover:scale-105 detail-play-btn"
               >
                 <Play className="w-5 h-5 md:w-6 md:h-6" fill="currentColor" />
                 Xem phim
@@ -211,7 +252,7 @@ function MovieDetail() {
       </div>
 
       {/* Content Section */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 detail-content">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-8">
@@ -283,7 +324,7 @@ function MovieDetail() {
           {/* Sidebar */}
           <div className="space-y-6">
             {/* Poster */}
-            <div className="rounded-lg overflow-hidden shadow-lg">
+            <div className="rounded-lg overflow-hidden shadow-lg detail-poster">
               <img
                 src={movie.posterPath}
                 alt={movie.title}

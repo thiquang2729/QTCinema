@@ -2,3 +2,8 @@
 node_modules/
 .env
 *.log
+*key.json
+firebase-key.json
+*firebase-adminsdk*.json
+qtcinema-c0e18-firebase-adminsdk-fbsvc-15f52c6353.json
+

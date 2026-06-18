@@ -1,166 +1,99 @@
-import { useEffect, useState } from 'react';
 import HeroSlider from '../components/HeroSlider';
 import MovieList from '../components/MovieList';
-import axiosInstance from '../services/axiosInstance';
 import { Link } from 'react-router-dom';
+import {
+  useGetHomeMoviesQuery,
+  useGetMoviesByCountryQuery,
+  useGetMoviesByListQuery,
+} from '../redux/services/movieApi';
 
 function Home() {
-  const [koreanMovies, setKoreanMovies] = useState([]);
-  const [koreanLoading, setKoreanLoading] = useState(false);
-  const [koreanError, setKoreanError] = useState(null);
-  const [chinaMovies, setChinaMovies] = useState([]);
-  const [chinaLoading, setChinaLoading] = useState(false);
-  const [chinaError, setChinaError] = useState(null);
-  const [europeMovies, setEuropeMovies] = useState([]);
-  const [europeLoading, setEuropeLoading] = useState(false);
-  const [europeError, setEuropeError] = useState(null);
-  const [animationMovies, setAnimationMovies] = useState([]);
-  const [animationLoading, setAnimationLoading] = useState(false);
-  const [animationError, setAnimationError] = useState(null);
+  // 1. Phim mới cập nhật (Home)
+  const {
+    data: homeData,
+    isLoading: homeLoading,
+    error: homeError,
+  } = useGetHomeMoviesQuery();
+  const homeMovies = homeData?.items || [];
 
-  useEffect(() => {
-    let mounted = true;
+  // 2. Phim Hàn Quốc
+  const {
+    data: koreanData,
+    isLoading: koreanLoading,
+    error: koreanError,
+  } = useGetMoviesByCountryQuery({
+    slug: 'han-quoc',
+    params: {
+      page: 1,
+      limit: 24,
+      sort_field: 'modified.time',
+      sort_type: 'desc',
+    },
+  });
+  const koreanMovies = koreanData?.items || [];
 
-    const fetchKorean = async () => {
-      try {
-        setKoreanLoading(true);
-        setKoreanError(null);
-        const res = await axiosInstance.get('/movies/country/han-quoc', {
-          params: {
-            page: 1,
-            limit: 24,
-            sort_field: 'modified.time',
-            sort_type: 'desc',
-          },
-        });
-        const items = res.data?.items || [];
-        if (mounted) setKoreanMovies(Array.isArray(items) ? items : []);
-      } catch (err) {
-        if (mounted) {
-          setKoreanMovies([]);
-          setKoreanError(err?.response?.data || err?.message || 'Không thể tải phim Hàn Quốc');
-        }
-      } finally {
-        if (mounted) setKoreanLoading(false);
-      }
-    };
+  // 3. Phim Trung Quốc
+  const {
+    data: chinaData,
+    isLoading: chinaLoading,
+    error: chinaError,
+  } = useGetMoviesByCountryQuery({
+    slug: 'trung-quoc',
+    params: {
+      page: 1,
+      limit: 24,
+      sort_field: 'modified.time',
+      sort_type: 'desc',
+    },
+  });
+  const chinaMovies = chinaData?.items || [];
 
-    fetchKorean();
-    return () => {
-      mounted = false;
-    };
-  }, []);
+  // 4. Phim Âu Mỹ
+  const {
+    data: europeData,
+    isLoading: europeLoading,
+    error: europeError,
+  } = useGetMoviesByCountryQuery({
+    slug: 'au-my',
+    params: {
+      page: 1,
+      limit: 24,
+      sort_field: 'modified.time',
+      sort_type: 'desc',
+    },
+  });
+  const europeMovies = europeData?.items || [];
 
-  useEffect(() => {
-    let mounted = true;
-
-    const fetchChina = async () => {
-      try {
-        setChinaLoading(true);
-        setChinaError(null);
-        const res = await axiosInstance.get('/movies/country/trung-quoc', {
-          params: {
-            page: 1,
-            limit: 24,
-            sort_field: 'modified.time',
-            sort_type: 'desc',
-          },
-        });
-        const items = res.data?.items || [];
-        if (mounted) setChinaMovies(Array.isArray(items) ? items : []);
-      } catch (err) {
-        if (mounted) {
-          setChinaMovies([]);
-          setChinaError(err?.response?.data || err?.message || 'Không thể tải phim Trung Quốc');
-        }
-      } finally {
-        if (mounted) setChinaLoading(false);
-      }
-    };
-
-    fetchChina();
-    return () => {
-      mounted = false;
-    };
-  }, []);
-
-  useEffect(() => {
-    let mounted = true;
-
-    const fetchEurope = async () => {
-      try {
-        setEuropeLoading(true);
-        setEuropeError(null);
-        // Dùng slug quốc gia tương ứng "Âu Mỹ" (thường là nhóm phim Châu Âu/Âu Mỹ)
-        const res = await axiosInstance.get('/movies/country/au-my', {
-          params: {
-            page: 1,
-            limit: 24,
-            sort_field: 'modified.time',
-            sort_type: 'desc',
-          },
-        });
-        const items = res.data?.items || [];
-        if (mounted) setEuropeMovies(Array.isArray(items) ? items : []);
-      } catch (err) {
-        if (mounted) {
-          setEuropeMovies([]);
-          setEuropeError(err?.response?.data || err?.message || 'Không thể tải phim Châu Âu');
-        }
-      } finally {
-        if (mounted) setEuropeLoading(false);
-      }
-    };
-
-    fetchEurope();
-    return () => {
-      mounted = false;
-    };
-  }, []);
-
-  useEffect(() => {
-    let mounted = true;
-
-    const fetchAnimation = async () => {
-      try {
-        setAnimationLoading(true);
-        setAnimationError(null);
-        // Dùng API danh sách theo bộ lọc (slug: hoat-hinh)
-        const res = await axiosInstance.get('/movies/list/hoat-hinh', {
-          params: {
-            page: 1,
-            limit: 24,
-            sort_field: 'modified.time',
-            sort_type: 'desc',
-          },
-        });
-        const items = res.data?.items || [];
-        if (mounted) setAnimationMovies(Array.isArray(items) ? items : []);
-      } catch (err) {
-        if (mounted) {
-          setAnimationMovies([]);
-          setAnimationError(err?.response?.data || err?.message || 'Không thể tải phim Hoạt Hình');
-        }
-      } finally {
-        if (mounted) setAnimationLoading(false);
-      }
-    };
-
-    fetchAnimation();
-    return () => {
-      mounted = false;
-    };
-  }, []);
+  // 5. Phim Hoạt Hình
+  const {
+    data: animationData,
+    isLoading: animationLoading,
+    error: animationError,
+  } = useGetMoviesByListQuery({
+    slug: 'hoat-hinh',
+    params: {
+      page: 1,
+      limit: 24,
+      sort_field: 'modified.time',
+      sort_type: 'desc',
+    },
+  });
+  const animationMovies = animationData?.items || [];
 
   return (
     <>
       {/* Hero Slider Section */}
-      <HeroSlider />
+      <HeroSlider movies={homeMovies} loading={homeLoading} />
 
       {/* Movie List Section */}
       <div className="bg-black py-6">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <MovieList layout="row" />
+          <MovieList
+            movies={homeMovies}
+            loading={homeLoading}
+            error={homeError}
+            layout="row"
+          />
         </div>
       </div>
 

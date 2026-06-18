@@ -7,10 +7,14 @@ import WatchPage from './pages/WatchPage';
 import MovieListPage from './pages/MovieListPage';
 import Footer from './components/Footer';
 import GlobalLoading from './components/GlobalLoading';
+import ScrollToTop from './components/ScrollToTop';
 
 function App() {
   return (
     <Router>
+      {/* Tự động cuộn lên đầu trang khi chuyển trang hoặc đổi bộ lọc */}
+      <ScrollToTop />
+      
       <div className="min-h-screen bg-black">
         {/* Hỗ trợ loading global cực xịn sò */}
         <GlobalLoading />

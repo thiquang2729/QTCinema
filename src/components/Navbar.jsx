@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Menu, X, Search, User, Film } from 'lucide-react';
+import { Show, SignInButton, UserButton } from '@clerk/react';
 import axiosInstance from '../services/axiosInstance';
 
 function Navbar() {
@@ -272,10 +273,23 @@ function Navbar() {
             )}
 
             {/* User Profile */}
-            <button className="flex items-center space-x-2 text-gray-300 hover:text-white transition-colors">
-              <User className="w-5 h-5" />
-              <span className="hidden sm:inline text-sm">Tài khoản</span>
-            </button>
+            <Show when="signed-in">
+              <UserButton 
+                appearance={{
+                  elements: {
+                    avatarBox: "w-8 h-8 rounded-full border border-gray-700 hover:border-red-600 transition-colors"
+                  }
+                }}
+              />
+            </Show>
+            <Show when="signed-out">
+              <SignInButton mode="modal">
+                <button className="flex items-center space-x-2 text-gray-300 hover:text-white transition-colors cursor-pointer">
+                  <User className="w-5 h-5" />
+                  <span className="hidden sm:inline text-sm">Đăng nhập</span>
+                </button>
+              </SignInButton>
+            </Show>
 
             {/* Mobile menu button */}
             <button

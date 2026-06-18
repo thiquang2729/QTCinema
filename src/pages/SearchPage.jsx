@@ -1,21 +1,21 @@
-import { useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useDispatch, useSelector } from 'react-redux';
-import { searchMovies } from '../redux/slices/movieSlice';
+import { useSearchMoviesQuery } from '../redux/services/movieApi';
 import MovieList from '../components/MovieList';
 import { Search } from 'lucide-react';
 
 function SearchPage() {
   const { keyword } = useParams();
   const navigate = useNavigate();
-  const dispatch = useDispatch();
-  const { searchResults, searchLoading, searchPagination } = useSelector((state) => state.movies);
 
-  useEffect(() => {
-    if (keyword && keyword.length >= 2) {
-      dispatch(searchMovies({ keyword, page: 1, limit: 24 }));
-    }
-  }, [keyword, dispatch]);
+  const isKeywordValid = keyword && keyword.length >= 2;
+
+  const { data, isLoading: searchLoading } = useSearchMoviesQuery(
+    { keyword, params: { page: 1, limit: 24 } },
+    { skip: !isKeywordValid }
+  );
+
+  const searchResults = data?.items || [];
+  const searchPagination = data?.pagination || {};
 
   if (!keyword || keyword.length < 2) {
     return (
