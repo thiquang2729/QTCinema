@@ -1,6 +1,11 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { useGetMovieByIdQuery, useGetMovieImagesQuery } from '../redux/services/movieApi';
+import { useUser } from '@clerk/react';
+import {
+  useGetWatchHistoryForMovieQuery,
+  useSaveWatchHistoryMutation,
+} from '../redux/services/userApi';
 import { ArrowLeft } from 'lucide-react';
 import VideoPlayer from '../components/VideoPlayer';
 
@@ -9,8 +14,16 @@ function WatchPage() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
 
+  const { isSignedIn } = useUser();
+
   const { data: movieData, isLoading: loading, error } = useGetMovieByIdQuery(slug, { skip: !slug });
   const { data: movieImagesRaw } = useGetMovieImagesQuery(slug, { skip: !slug });
+
+  // Lấy lịch sử xem của phim
+  const { data: historyData } = useGetWatchHistoryForMovieQuery(slug, {
+    skip: !isSignedIn || !slug,
+  });
+  const [saveWatchHistory] = useSaveWatchHistoryMutation();
 
   const movie = movieData?.data || movieData;
   const movieImages = movieImagesRaw?.data || movieImagesRaw;
@@ -19,6 +32,13 @@ function WatchPage() {
   const [serverIndex, setServerIndex] = useState(
     Number(searchParams.get('server')) || 0
   );
+
+  const [startTime, setStartTime] = useState(0);
+
+  // Refs để theo dõi giây hiện tại mà không làm trigger re-render liên tục
+  const progressRef = useRef({ currentTime: 0, duration: 0 });
+  const saveTimeoutRef = useRef(null);
+  const initialLoadedRef = useRef(false);
 
   const findEpisode = (movieData, sIndex, eIndex) => {
     if (!movieData?.episodes?.length) return null;
@@ -38,17 +58,117 @@ function WatchPage() {
     };
   };
 
+  // Khôi phục tập đang xem dở từ lịch sử xem khi vào trang lần đầu (không có params trên URL)
+  useEffect(() => {
+    if (!movie || historyData === undefined || initialLoadedRef.current) return;
+
+    const epParam = searchParams.get('ep');
+    const serverParam = searchParams.get('server');
+
+    if (epParam === null && serverParam === null) {
+      const history = historyData?.data;
+      if (history) {
+        // Cập nhật URL sang tập và server đang xem dở
+        navigate(`/xem/${slug}?server=${history.serverIndex || 0}&ep=${history.epIndex || 0}`, { replace: true });
+      }
+    }
+    initialLoadedRef.current = true;
+  }, [movie, historyData, slug, searchParams, navigate]);
+
   // Thiết lập tập hiện tại theo URL hoặc mặc định
   useEffect(() => {
     if (!movie) return;
 
     const epParam = searchParams.get('ep');
-    const epIndex = epParam ? Number(epParam) : undefined;
-    const found = findEpisode(movie, serverIndex, epIndex);
+    const serverParam = searchParams.get('server');
+    
+    const sIndex = serverParam !== null ? Number(serverParam) : 0;
+    const eIndex = epParam !== null ? Number(epParam) : 0;
+
+    // Cập nhật serverIndex state
+    setServerIndex(sIndex);
+
+    const found = findEpisode(movie, sIndex, eIndex);
     if (found?.link_m3u8) {
       setCurrentEpisode(found);
+      
+      // Khôi phục startTime từ lịch sử xem nếu có
+      const history = historyData?.data;
+      if (
+        history &&
+        history.episodeSlug === found.slug &&
+        history.serverIndex === sIndex &&
+        history.currentTime > 5 // Chỉ khôi phục nếu đã xem hơn 5 giây
+      ) {
+        setStartTime(history.currentTime);
+      } else {
+        setStartTime(0);
+      }
+
+      // Reset progress ref
+      progressRef.current = { currentTime: 0, duration: 0 };
     }
-  }, [movie, serverIndex, searchParams]);
+  }, [movie, searchParams, historyData]);
+
+  // Hàm thực hiện lưu lịch sử lên server
+  const triggerSaveHistory = async (time, duration) => {
+    if (!isSignedIn || !movie || !currentEpisode) return;
+    
+    const curTime = time !== undefined ? time : progressRef.current.currentTime;
+    const dur = duration !== undefined ? duration : progressRef.current.duration;
+
+    // Không lưu nếu thời gian không hợp lệ hoặc bằng 0
+    if (curTime <= 0) return;
+
+    try {
+      await saveWatchHistory({
+        movieSlug: slug,
+        movieTitle: movie.title,
+        moviePoster: movie.posterPath || '',
+        movieThumb: movie.thumbUrl || '',
+        movieType: movie.type || 'single',
+        episodeSlug: currentEpisode.slug,
+        episodeName: currentEpisode.name,
+        currentTime: curTime,
+        duration: dur,
+        serverIndex,
+        epIndex: currentEpisode.episodeIndex,
+      }).unwrap();
+    } catch (err) {
+      console.error('Failed to save watch history:', err);
+    }
+  };
+
+  // Định kỳ lưu tiến trình mỗi 10 giây khi đang xem
+  useEffect(() => {
+    if (!isSignedIn) return;
+
+    const interval = setInterval(() => {
+      if (progressRef.current.currentTime > 0) {
+        triggerSaveHistory();
+      }
+    }, 10000);
+
+    return () => {
+      clearInterval(interval);
+      // Lưu tiến độ cuối cùng khi rời trang
+      if (progressRef.current.currentTime > 0) {
+        triggerSaveHistory();
+      }
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isSignedIn, movie, currentEpisode, serverIndex]);
+
+  const handleTimeUpdate = (time, duration) => {
+    progressRef.current = { currentTime: time, duration };
+  };
+
+  const handlePause = (time) => {
+    if (time > 0) {
+      progressRef.current.currentTime = time;
+      triggerSaveHistory(time);
+    }
+  };
 
   if (loading || !movie) {
     return (
@@ -113,6 +233,9 @@ function WatchPage() {
               episodeLabel={`Tập ${currentEpisode.name}`}
               autoPlay
               fullScreen
+              startTime={startTime}
+              onTimeUpdate={handleTimeUpdate}
+              onPause={handlePause}
             />
           ) : (
             <div className="h-full flex items-center justify-center text-gray-400">
@@ -142,13 +265,7 @@ function WatchPage() {
                         key={eIndex}
                         type="button"
                         onClick={() => {
-                          setServerIndex(sIndex);
-                          setCurrentEpisode({
-                            serverName: server.server_name,
-                            serverIndex: sIndex,
-                            episodeIndex: eIndex,
-                            ...episode,
-                          });
+                          navigate(`/xem/${slug}?server=${sIndex}&ep=${eIndex}`, { replace: true });
                         }}
                         className={`py-1.5 rounded text-xs font-medium border transition-all text-center ${
                           isActive

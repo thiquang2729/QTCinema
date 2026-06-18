@@ -1,6 +1,12 @@
 import HeroSlider from '../components/HeroSlider';
 import MovieList from '../components/MovieList';
 import { Link } from 'react-router-dom';
+import { useUser } from '@clerk/react';
+import {
+  useGetWatchHistoryQuery,
+  useDeleteWatchHistoryMutation,
+} from '../redux/services/userApi';
+import { Play, X } from 'lucide-react';
 import {
   useGetHomeMoviesQuery,
   useGetMoviesByCountryQuery,
@@ -8,6 +14,8 @@ import {
 } from '../redux/services/movieApi';
 
 function Home() {
+  const { isSignedIn } = useUser();
+
   // 1. Phim mới cập nhật (Home)
   const {
     data: homeData,
@@ -15,6 +23,23 @@ function Home() {
     error: homeError,
   } = useGetHomeMoviesQuery();
   const homeMovies = homeData?.items || [];
+
+  // Lịch sử xem phim để hiển thị "Tiếp tục xem"
+  const { data: historyData } = useGetWatchHistoryQuery(undefined, {
+    skip: !isSignedIn,
+  });
+  const watchHistory = historyData?.data || [];
+  const [deleteWatchHistory] = useDeleteWatchHistoryMutation();
+
+  const handleDeleteHistory = async (e, movieSlug) => {
+    e.preventDefault();
+    e.stopPropagation();
+    try {
+      await deleteWatchHistory(movieSlug).unwrap();
+    } catch (err) {
+      console.error('Failed to delete history:', err);
+    }
+  };
 
   // 2. Phim Hàn Quốc
   const {
@@ -84,6 +109,29 @@ function Home() {
     <>
       {/* Hero Slider Section */}
       <HeroSlider movies={homeMovies} loading={homeLoading} />
+
+      {/* Tiếp tục xem Section */}
+      {isSignedIn && watchHistory.length > 0 && (
+        <div className="bg-black py-6 border-b border-gray-900/60">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <MovieList
+              movies={watchHistory.map((item) => ({
+                id: item.movieSlug,
+                slug: item.movieSlug,
+                title: item.movieTitle,
+                posterPath: item.moviePoster,
+                thumbUrl: item.movieThumb || item.moviePoster,
+                originalTitle: '',
+                rating: 0,
+                year: '',
+              }))}
+              title="Tiếp tục xem"
+              layout="row"
+              isContinueWatching={true}
+            />
+          </div>
+        </div>
+      )}
 
       {/* Movie List Section */}
       <div className="bg-black py-6">

@@ -1,7 +1,13 @@
 import { useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useGetMovieByIdQuery, useGetMovieImagesQuery } from '../redux/services/movieApi';
-import { ArrowLeft, Play, Star, Calendar, Clock, Eye, Flag } from 'lucide-react';
+import { useUser, useClerk } from '@clerk/react';
+import {
+  useCheckWatchlistQuery,
+  useAddToWatchlistMutation,
+  useRemoveFromWatchlistMutation,
+} from '../redux/services/userApi';
+import { ArrowLeft, Play, Star, Calendar, Clock, Eye, Flag, Heart } from 'lucide-react';
 import ImageGallery from '../components/ImageGallery';
 import gsap from 'gsap';
 
@@ -65,11 +71,49 @@ function MovieDetail() {
   const navigate = useNavigate();
   const pageRef = useRef(null);
 
+  const { isSignedIn } = useUser();
+  const { openSignIn } = useClerk();
+
   const { data: movieData, isLoading: loading, error } = useGetMovieByIdQuery(slug, { skip: !slug });
   const { data: movieImagesRaw } = useGetMovieImagesQuery(slug, { skip: !slug });
 
+  const { data: checkData } = useCheckWatchlistQuery(slug, { skip: !isSignedIn || !slug });
+  const isFavorite = checkData?.data?.isFavorite || false;
+
+  const [addToWatchlist] = useAddToWatchlistMutation();
+  const [removeFromWatchlist] = useRemoveFromWatchlistMutation();
+
   const movie = movieData?.data || movieData;
   const movieImages = movieImagesRaw?.data || movieImagesRaw;
+
+  const handleToggleWatchlist = async () => {
+    if (!isSignedIn) {
+      openSignIn();
+      return;
+    }
+
+    try {
+      if (isFavorite) {
+        await removeFromWatchlist(slug).unwrap();
+      } else {
+        await addToWatchlist({
+          movieSlug: slug,
+          title: movie.title,
+          posterPath: movie.posterPath,
+          thumbUrl: movie.thumbUrl,
+          type: movie.type,
+          originalTitle: movie.originalTitle || '',
+          rating: movie.rating || 0,
+          year: movie.year || '',
+          quality: movie.quality || 'FHD',
+          lang: movie.lang || 'Vietsub',
+          episode_current: movie.episode_current || '',
+        }).unwrap();
+      }
+    } catch (err) {
+      console.error('Error toggling watchlist:', err);
+    }
+  };
 
   // GSAP animation on details page mount/load
   useEffect(() => {
@@ -238,14 +282,27 @@ function MovieDetail() {
                 )}
               </div>
 
-              {/* Play Button */}
-              <button
-                onClick={handlePlayDefault}
-                className="px-6 py-3 md:px-8 md:py-4 bg-red-600 hover:bg-red-700 text-white font-bold rounded flex items-center gap-2 md:gap-3 transition-all hover:scale-105 detail-play-btn"
-              >
-                <Play className="w-5 h-5 md:w-6 md:h-6" fill="currentColor" />
-                Xem phim
-              </button>
+              {/* Play & Favorite Buttons */}
+              <div className="flex flex-wrap gap-4 detail-play-btn">
+                <button
+                  onClick={handlePlayDefault}
+                  className="px-6 py-3 md:px-8 md:py-4 bg-red-600 hover:bg-red-700 text-white font-bold rounded flex items-center gap-2 md:gap-3 transition-all hover:scale-105 cursor-pointer"
+                >
+                  <Play className="w-5 h-5 md:w-6 md:h-6" fill="currentColor" />
+                  Xem phim
+                </button>
+                <button
+                  onClick={handleToggleWatchlist}
+                  className={`px-6 py-3 md:px-8 md:py-4 font-semibold rounded flex items-center gap-2 transition-all hover:scale-105 border cursor-pointer ${
+                    isFavorite
+                      ? 'bg-transparent border-white text-white hover:bg-white/10'
+                      : 'bg-white/10 border-transparent text-white hover:bg-white/20'
+                  }`}
+                >
+                  <Heart className={`w-5 h-5 ${isFavorite ? 'fill-red-600 text-red-600' : ''}`} />
+                  {isFavorite ? 'Đã yêu thích' : 'Thêm vào yêu thích'}
+                </button>
+              </div>
             </div>
           </div>
         </div>

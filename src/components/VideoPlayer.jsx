@@ -15,6 +15,10 @@ function VideoPlayer({
   episodeLabel,
   autoPlay = false,
   fullScreen = false,
+  startTime = 0,
+  onTimeUpdate,
+  onPause,
+  onEnded,
 }) {
   const containerRef = useRef(null);
   const videoRef = useRef(null);
@@ -96,11 +100,22 @@ function VideoPlayer({
     const video = videoRef.current;
     if (!video) return;
 
+    let startTimeApplied = false;
+
+    const applyStartTime = () => {
+      if (startTime && startTime > 0 && !startTimeApplied) {
+        video.currentTime = startTime;
+        startTimeApplied = true;
+      }
+    };
+
     const onLoadedMetadata = () => {
       setDuration(video.duration || 0);
       setIsBuffering(false);
       // Áp dụng tốc độ phát hiện tại (phòng trường hợp đổi src)
       video.playbackRate = playbackRate;
+
+      applyStartTime();
 
       if (autoPlay) {
         setIsBuffering(true);
@@ -116,8 +131,13 @@ function VideoPlayer({
       }
     };
 
-    const onTimeUpdate = () => {
-      setCurrentTime(video.currentTime || 0);
+    const handleVideoTimeUpdate = () => {
+      const current = video.currentTime || 0;
+      const dur = video.duration || 0;
+      setCurrentTime(current);
+      if (onTimeUpdate) {
+        onTimeUpdate(current, dur);
+      }
     };
 
     const onWaiting = () => {
@@ -129,25 +149,40 @@ function VideoPlayer({
       setIsPlaying(true);
     };
 
-    const onEnded = () => {
+    const onPauseEvent = () => {
+      setIsPlaying(false);
+      if (onPause) {
+        onPause(video.currentTime || 0);
+      }
+    };
+
+    const onEndedEvent = () => {
       setIsPlaying(false);
       setIsBuffering(false);
+      if (onEnded) {
+        onEnded();
+      }
     };
 
     video.addEventListener('loadedmetadata', onLoadedMetadata);
-    video.addEventListener('timeupdate', onTimeUpdate);
+    // loadeddata và canplay cũng giúp đảm bảo jump tới time chính xác cho một số trình duyệt
+    video.addEventListener('loadeddata', applyStartTime);
+    video.addEventListener('timeupdate', handleVideoTimeUpdate);
     video.addEventListener('waiting', onWaiting);
     video.addEventListener('playing', onPlaying);
-    video.addEventListener('ended', onEnded);
+    video.addEventListener('pause', onPauseEvent);
+    video.addEventListener('ended', onEndedEvent);
 
     return () => {
       video.removeEventListener('loadedmetadata', onLoadedMetadata);
-      video.removeEventListener('timeupdate', onTimeUpdate);
+      video.removeEventListener('loadeddata', applyStartTime);
+      video.removeEventListener('timeupdate', handleVideoTimeUpdate);
       video.removeEventListener('waiting', onWaiting);
       video.removeEventListener('playing', onPlaying);
-      video.removeEventListener('ended', onEnded);
+      video.removeEventListener('pause', onPauseEvent);
+      video.removeEventListener('ended', onEndedEvent);
     };
-  }, [autoPlay, playbackRate]);
+  }, [autoPlay, playbackRate, startTime, onTimeUpdate, onPause, onEnded]);
 
   // Đồng bộ playbackRate vào video
   useEffect(() => {

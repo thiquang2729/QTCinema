@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const { clerkMiddleware, requireAuth, getAuth } = require('@clerk/express');
 const movieRoutes = require('./routes/movies');
+const userRoutes = require('./routes/users');
 
 /**
  * Express app dùng chung cho:
@@ -17,6 +18,7 @@ app.use(clerkMiddleware());
 
 // Routes
 app.use('/api/movies', movieRoutes);
+app.use('/api/users', userRoutes);
 
 // Protected Route - Kiểm thử xác thực
 app.get('/api/profile', requireAuth(), (req, res) => {

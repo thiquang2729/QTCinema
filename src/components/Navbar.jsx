@@ -128,6 +128,14 @@ function Navbar() {
               >
                 Phim lẻ
               </Link>
+              <Show when="signed-in">
+                <Link
+                  to="/watchlist"
+                  className="text-gray-300 hover:text-white transition-colors text-sm font-medium"
+                >
+                  Phim yêu thích
+                </Link>
+              </Show>
             </div>
           </div>
 
@@ -332,6 +340,15 @@ function Navbar() {
               >
                 Phim lẻ
               </Link>
+              <Show when="signed-in">
+                <Link
+                  to="/watchlist"
+                  onClick={() => setIsMenuOpen(false)}
+                  className="block px-3 py-2 text-gray-300 hover:text-white hover:bg-red-600/20 rounded transition-colors"
+                >
+                  Phim yêu thích
+                </Link>
+              </Show>
             </div>
           </div>
         )}
