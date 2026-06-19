@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useParams, useSearchParams, useNavigate } from 'react-router-dom';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
+import gsap from 'gsap';
 import { useGetMoviesByListQuery } from '../redux/services/movieApi';
 import MovieList from '../components/MovieList';
 
@@ -211,12 +213,94 @@ function FilterDropdown({
   );
 }
 
+function getPageNumbers(currentPage, totalPages) {
+  const pages = [];
+  const delta = 2; // số trang hiển thị mỗi bên trang hiện tại
+
+  // Luôn thêm trang 1
+  pages.push(1);
+
+  // Tính range xung quanh currentPage
+  const start = Math.max(2, currentPage - delta);
+  const end = Math.min(totalPages - 1, currentPage + delta);
+
+  // Ellipsis trước
+  if (start > 2) pages.push('...');
+
+  // Các trang ở giữa
+  for (let i = start; i <= end; i++) pages.push(i);
+
+  // Ellipsis sau
+  if (end < totalPages - 1) pages.push('...');
+
+  // Luôn thêm trang cuối (nếu > 1)
+  if (totalPages > 1) pages.push(totalPages);
+
+  return pages;
+}
+
+function MovieListPageSkeleton() {
+  const containerRef = useRef(null);
+
+  useEffect(() => {
+    if (containerRef.current) {
+      const cards = containerRef.current.querySelectorAll('.skeleton-card');
+      if (cards.length > 0) {
+        gsap.killTweensOf(cards);
+        gsap.fromTo(
+          cards,
+          { opacity: 0, y: 20 },
+          {
+            opacity: 1,
+            y: 0,
+            duration: 0.5,
+            stagger: 0.04,
+            ease: 'power2.out',
+          }
+        );
+      }
+    }
+  }, []);
+
+  return (
+    <div
+      ref={containerRef}
+      className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4 py-4 px-4"
+    >
+      {Array.from({ length: 12 }).map((_, index) => (
+        <div
+          key={index}
+          className="skeleton-card flex flex-col bg-zinc-950 rounded-lg overflow-hidden border border-zinc-900"
+          style={{ opacity: 0 }}
+        >
+          <div className="aspect-2/3 bg-zinc-900 skeleton-shimmer rounded-lg" />
+          <div className="p-3">
+            <div className="skeleton-shimmer h-4 bg-zinc-900 rounded w-3/4 mb-2" />
+            <div className="skeleton-shimmer h-3 bg-zinc-900 rounded w-1/2" />
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 function MovieListPage() {
   const { slug } = useParams();
   const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
+  const paginationRef = useRef(null);
 
   const currentPage = Number(searchParams.get('page') || 1);
+
+  useEffect(() => {
+    if (paginationRef.current) {
+      gsap.fromTo(
+        paginationRef.current,
+        { opacity: 0, y: 15 },
+        { opacity: 1, y: 0, duration: 0.4, ease: 'power2.out' }
+      );
+    }
+  }, [currentPage]);
   const sortField = searchParams.get('sort_field') || 'modified.time';
   const sortType = searchParams.get('sort_type') || 'desc';
   const category = searchParams.get('category') || '';
@@ -274,13 +358,7 @@ function MovieListPage() {
 
   const title = LIST_TITLES[slug] || 'Danh sách phim';
 
-  if (loading && movies.length === 0) {
-    return (
-      <div className="min-h-screen bg-black flex items-center justify-center text-gray-300">
-        Đang tải danh sách phim...
-      </div>
-    );
-  }
+  // Bỏ early return loading để hiển thị skeleton trong layout chính
 
   if (error) {
     return (
@@ -404,28 +482,62 @@ function MovieListPage() {
 
         {/* Movie grid */}
         <div className="relative z-0">
-          <MovieList movies={movies} title="" />
+          {loading ? (
+            <MovieListPageSkeleton />
+          ) : (
+            <MovieList movies={movies} title="" />
+          )}
         </div>
 
-        {/* Pagination đơn giản */}
+        {/* Pagination nâng cao */}
         {totalPages > 1 && (
-          <div className="mt-8 flex items-center justify-center gap-2">
+          <div
+            ref={paginationRef}
+            className="mt-8 flex items-center justify-center gap-2 flex-wrap"
+          >
             <button
               onClick={() => handlePageChange(currentPage - 1)}
               disabled={currentPage <= 1}
-              className="px-3 py-1.5 rounded bg-gray-800 text-sm disabled:opacity-40 disabled:cursor-not-allowed hover:bg-gray-700"
+              className="px-3 h-10 rounded-lg bg-zinc-900 border border-zinc-800/80 text-sm disabled:opacity-40 disabled:cursor-not-allowed hover:bg-zinc-800 text-gray-200 transition-colors flex items-center gap-1.5 cursor-pointer"
             >
-              Trang trước
+              <ChevronLeft className="w-4 h-4" />
+              <span>Trước</span>
             </button>
-            <span className="text-gray-300 text-sm">
-              Trang {currentPage} / {totalPages}
-            </span>
+
+            {getPageNumbers(currentPage, totalPages).map((p, idx) => {
+              if (p === '...') {
+                return (
+                  <span
+                    key={`ellipsis-${idx}`}
+                    className="w-10 h-10 flex items-center justify-center text-gray-500 cursor-default select-none"
+                  >
+                    ...
+                  </span>
+                );
+              }
+              const isActive = p === currentPage;
+              return (
+                <button
+                  key={p}
+                  onClick={() => handlePageChange(p)}
+                  className={`w-10 h-10 rounded-lg text-sm transition-colors cursor-pointer ${
+                    isActive
+                      ? 'bg-red-600 text-white font-bold shadow-lg shadow-red-600/30'
+                      : 'bg-zinc-900 border border-zinc-800/80 text-gray-300 hover:bg-zinc-800 hover:text-white'
+                  }`}
+                >
+                  {p}
+                </button>
+              );
+            })}
+
             <button
               onClick={() => handlePageChange(currentPage + 1)}
               disabled={currentPage >= totalPages}
-              className="px-3 py-1.5 rounded bg-gray-800 text-sm disabled:opacity-40 disabled:cursor-not-allowed hover:bg-gray-700"
+              className="px-3 h-10 rounded-lg bg-zinc-900 border border-zinc-800/80 text-sm disabled:opacity-40 disabled:cursor-not-allowed hover:bg-zinc-800 text-gray-200 transition-colors flex items-center gap-1.5 cursor-pointer"
             >
-              Trang sau
+              <span>Sau</span>
+              <ChevronRight className="w-4 h-4" />
             </button>
           </div>
         )}

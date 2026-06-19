@@ -6,8 +6,109 @@ import {
   useGetWatchHistoryForMovieQuery,
   useSaveWatchHistoryMutation,
 } from '../redux/services/userApi';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, AlertTriangle, Film } from 'lucide-react';
+import gsap from 'gsap';
 import VideoPlayer from '../components/VideoPlayer';
+
+function WatchPageSkeleton() {
+  const containerRef = useRef(null);
+
+  useEffect(() => {
+    if (containerRef.current) {
+      const topBar = containerRef.current.querySelector('.skeleton-top-bar');
+      const player = containerRef.current.querySelector('.skeleton-player');
+      const sidebarElements = containerRef.current.querySelectorAll('.skeleton-sidebar-element');
+
+      gsap.fromTo(topBar, { opacity: 0 }, { opacity: 1, duration: 0.4 });
+      gsap.fromTo(player, { opacity: 0, scale: 0.98 }, { opacity: 1, scale: 1, duration: 0.5, ease: 'power2.out' });
+      gsap.fromTo(sidebarElements, { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.4, stagger: 0.03, ease: 'power2.out' });
+    }
+  }, []);
+
+  return (
+    <div ref={containerRef} className="min-h-screen bg-black text-white flex flex-col">
+      {/* Top bar skeleton */}
+      <div className="skeleton-top-bar h-12 flex items-center px-6 border-b border-zinc-900 bg-black/90 opacity-0">
+        <div className="w-20 h-5 bg-zinc-900 skeleton-shimmer rounded" />
+        <div className="ml-4 w-40 h-5 bg-zinc-900 skeleton-shimmer rounded" />
+      </div>
+
+      {/* Main content skeleton */}
+      <div className="flex flex-col lg:flex-row h-[calc(100vh-3rem)]">
+        {/* Player skeleton */}
+        <div className="flex-1 bg-black flex items-center justify-center xl:px-8 p-4">
+          <div className="skeleton-player w-full max-w-4xl aspect-video bg-zinc-950 border border-zinc-900 rounded-2xl flex flex-col items-center justify-center gap-3 skeleton-shimmer opacity-0">
+            <Film className="w-12 h-12 text-zinc-800 animate-pulse" />
+            <span className="text-zinc-600 text-sm font-medium">Đang thiết lập trình phát phim...</span>
+          </div>
+        </div>
+
+        {/* Sidebar skeleton */}
+        <div className="w-full lg:w-80 bg-black border-t lg:border-t-0 lg:border-l border-zinc-900 overflow-y-auto p-4 flex flex-col">
+          <div className="skeleton-sidebar-element w-1/2 h-6 bg-zinc-900 skeleton-shimmer rounded mb-4 opacity-0" />
+          <div className="skeleton-sidebar-element w-1/3 h-5 bg-zinc-900 skeleton-shimmer rounded mb-3 opacity-0" />
+          <div className="grid grid-cols-4 gap-2">
+            {Array.from({ length: 16 }).map((_, idx) => (
+              <div
+                key={idx}
+                className="skeleton-sidebar-element h-8 bg-zinc-900 skeleton-shimmer rounded opacity-0"
+              />
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function WatchPageError({ error, onRetry, onHome }) {
+  const containerRef = useRef(null);
+
+  useEffect(() => {
+    if (containerRef.current) {
+      gsap.fromTo(
+        containerRef.current,
+        { opacity: 0, scale: 0.95 },
+        { opacity: 1, scale: 1, duration: 0.5, ease: 'back.out(1.2)' }
+      );
+    }
+  }, []);
+
+  const errorMessage = error?.message || (typeof error === 'string' ? error : 'Đã xảy ra lỗi kết nối. Vui lòng kiểm tra lại mạng hoặc thử lại sau.');
+
+  return (
+    <div className="min-h-screen bg-black flex items-center justify-center px-4">
+      <div
+        ref={containerRef}
+        className="w-full max-w-md bg-red-950/20 border border-red-900/50 rounded-2xl p-6 backdrop-blur-xl shadow-2xl text-center flex flex-col items-center opacity-0"
+      >
+        <div className="w-16 h-16 rounded-full bg-red-900/20 border border-red-800/40 flex items-center justify-center text-red-500 mb-4 shadow-[0_0_15px_rgba(239,68,68,0.1)]">
+          <AlertTriangle className="w-8 h-8" />
+        </div>
+
+        <h2 className="text-xl font-bold text-red-400 mb-2">Không thể tải phim</h2>
+        <p className="text-sm text-red-400/80 mb-6 leading-relaxed">
+          {errorMessage}
+        </p>
+
+        <div className="flex gap-3 w-full">
+          <button
+            onClick={onRetry}
+            className="flex-1 py-2.5 bg-red-600 hover:bg-red-700 active:bg-red-850 text-white text-sm font-semibold rounded-xl shadow-lg shadow-red-600/20 transition-all cursor-pointer hover:scale-[1.02]"
+          >
+            Thử lại
+          </button>
+          <button
+            onClick={onHome}
+            className="flex-1 py-2.5 bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-zinc-300 text-sm font-semibold rounded-xl transition-all cursor-pointer hover:scale-[1.02]"
+          >
+            Về trang chủ
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 function WatchPage() {
   const { slug } = useParams();
@@ -171,18 +272,16 @@ function WatchPage() {
   };
 
   if (loading || !movie) {
-    return (
-      <div className="min-h-screen bg-black flex items-center justify-center text-gray-300">
-        Đang tải phim...
-      </div>
-    );
+    return <WatchPageSkeleton />;
   }
 
   if (error) {
     return (
-      <div className="min-h-screen bg-black flex items-center justify-center text-red-500">
-        {typeof error === 'string' ? error : 'Không thể tải phim'}
-      </div>
+      <WatchPageError
+        error={error}
+        onRetry={() => window.location.reload()}
+        onHome={() => navigate('/')}
+      />
     );
   }
 
