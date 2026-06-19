@@ -228,13 +228,13 @@ function MovieList({
             <>
               {/* Lớp gradient mờ ở rìa trái (hiển thị khi có thể cuộn trái hoặc là mục tiếp tục xem) */}
               <div
-                className={`absolute left-0 top-0 bottom-0 w-16 bg-gradient-to-r from-black to-transparent pointer-events-none z-20 transition-opacity duration-300 ${
+                className={`hidden md:block absolute left-0 top-0 bottom-0 w-16 bg-gradient-to-r from-black to-transparent pointer-events-none z-20 transition-opacity duration-300 ${
                   (canScrollLeft || isContinueWatching) ? 'opacity-100' : 'opacity-0'
                 }`}
               />
               {/* Lớp gradient mờ ở rìa phải (hiển thị khi có thể cuộn phải) */}
               <div
-                className={`absolute right-0 top-0 bottom-0 w-16 bg-gradient-to-l from-black to-transparent pointer-events-none z-20 transition-opacity duration-300 ${
+                className={`hidden md:block absolute right-0 top-0 bottom-0 w-16 bg-gradient-to-l from-black to-transparent pointer-events-none z-20 transition-opacity duration-300 ${
                   canScrollRight ? 'opacity-100' : 'opacity-0'
                 }`}
               />
