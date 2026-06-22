@@ -332,17 +332,9 @@ function VideoPlayer({
     if (tapCountRef.current === 1) {
       // Đợi xem có tap thứ 2 không
       tapTimeoutRef.current = setTimeout(() => {
-        // Single tap → ẩn/hiện controls
-        setControlsVisible((prev) => {
-          const next = !prev;
-          if (next && isPlaying) {
-            if (hideControlsTimeoutRef.current) clearTimeout(hideControlsTimeoutRef.current);
-            hideControlsTimeoutRef.current = setTimeout(() => setControlsVisible(false), 5000);
-          } else if (!next) {
-            if (hideControlsTimeoutRef.current) clearTimeout(hideControlsTimeoutRef.current);
-          }
-          return next;
-        });
+        // Single tap → play/pause
+        togglePlay();
+        resetHideControlsTimer();
         tapCountRef.current = 0;
       }, 250);
     } else if (tapCountRef.current === 2) {
@@ -374,6 +366,10 @@ function VideoPlayer({
       } else if (e.code === 'ArrowLeft') {
         e.preventDefault();
         seekBy(-10);
+        resetHideControlsTimer();
+      } else if (e.code === 'KeyF') {
+        e.preventDefault();
+        toggleFullscreen();
         resetHideControlsTimer();
       }
     };
