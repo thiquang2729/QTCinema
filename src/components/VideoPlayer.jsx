@@ -1,6 +1,7 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import Hls from 'hls.js';
-import { Play, Pause, Volume2, VolumeX, Maximize2, RotateCcw, RotateCw, Film } from 'lucide-react';
+import gsap from 'gsap';
+import { Play, Pause, Volume2, VolumeX, Maximize2, RotateCcw, RotateCw, Film, SkipForward } from 'lucide-react';
 
 /**
  * VideoPlayer
@@ -19,6 +20,8 @@ function VideoPlayer({
   onTimeUpdate,
   onPause,
   onEnded,
+  nextEpisode = null,
+  onNextEpisode,
 }) {
   const containerRef = useRef(null);
   const videoRef = useRef(null);
@@ -41,6 +44,21 @@ function VideoPlayer({
   const tapTimeoutRef = useRef(null);
   const tapCountRef = useRef(0);
   const lastTapXRef = useRef(0);
+
+  // Next episode popup state
+  const [showNextPopup, setShowNextPopup] = useState(false);
+  const [nextCountdown, setNextCountdown] = useState(10);
+  const nextPopupRef = useRef(null);
+  const nextCountdownRef = useRef(null);
+  const nextCountdownCircleRef = useRef(null);
+  const nextPopupDismissedRef = useRef(false);
+  const nextPopupShownRef = useRef(false);
+  const onNextEpisodeRef = useRef(onNextEpisode);
+
+  // Sync callback ref
+  useEffect(() => {
+    onNextEpisodeRef.current = onNextEpisode;
+  }, [onNextEpisode]);
 
   // Cập nhật document.title để media player bên ngoài hiển thị tên phim + tập
   useEffect(() => {
@@ -66,6 +84,16 @@ function VideoPlayer({
     setCurrentTime(0);
     setDuration(0);
     setIsBuffering(true);
+    setShowNextPopup(false);
+    setNextCountdown(10);
+    // GIỮ nextPopupShownRef = true để block detection effect
+    // với stale state values (currentTime/duration chưa reset kịp).
+    // Sẽ reset về false trong onLoadedMetadata khi video mới load xong.
+    nextPopupShownRef.current = true;
+    if (nextCountdownRef.current) {
+      clearInterval(nextCountdownRef.current);
+      nextCountdownRef.current = null;
+    }
 
     if (Hls.isSupported()) {
       if (hlsRef.current) {
@@ -114,6 +142,11 @@ function VideoPlayer({
       setIsBuffering(false);
       // Áp dụng tốc độ phát hiện tại (phòng trường hợp đổi src)
       video.playbackRate = playbackRate;
+
+      // Reset next episode popup cho tập mới
+      // (an toàn vì lúc này duration đã có giá trị mới)
+      nextPopupShownRef.current = false;
+      nextPopupDismissedRef.current = false;
 
       applyStartTime();
 
@@ -317,8 +350,156 @@ function VideoPlayer({
       if (gestureTimeoutRef.current) {
         clearTimeout(gestureTimeoutRef.current);
       }
+      if (nextCountdownRef.current) {
+        clearInterval(nextCountdownRef.current);
+      }
     };
   }, []);
+
+  // Next episode: hiển popup khi còn 2 phút cuối video
+  useEffect(() => {
+    if (!nextEpisode || !duration || duration <= 0) return;
+    if (nextPopupDismissedRef.current) return;
+    if (nextPopupShownRef.current) return;
+
+    const timeRemaining = duration - currentTime;
+
+    // Hiển popup khi còn ≤ 120s (2 phút)
+    if (timeRemaining <= 120 && timeRemaining > 0) {
+      nextPopupShownRef.current = true;
+      setShowNextPopup(true);
+      setNextCountdown(10);
+    }
+  }, [currentTime, duration, nextEpisode]);
+
+  // GSAP animation khi popup xuất hiện + countdown timer
+  useEffect(() => {
+    if (!showNextPopup) return;
+
+    const popupEl = nextPopupRef.current;
+    const circleEl = nextCountdownCircleRef.current;
+    if (!popupEl) return;
+
+    // GSAP slide-in animation
+    gsap.fromTo(
+      popupEl,
+      { x: 120, opacity: 0, scale: 0.9 },
+      {
+        x: 0,
+        opacity: 1,
+        scale: 1,
+        duration: 0.6,
+        ease: 'back.out(1.4)',
+      }
+    );
+
+    // Animate countdown circle (SVG stroke-dashoffset)
+    if (circleEl) {
+      const circumference = 2 * Math.PI * 18; // r=18
+      gsap.fromTo(
+        circleEl,
+        { strokeDashoffset: 0 },
+        {
+          strokeDashoffset: circumference,
+          duration: 10,
+          ease: 'linear',
+        }
+      );
+    }
+
+    // Pulse glow effect trên nút
+    const btnEl = popupEl.querySelector('.next-ep-btn');
+    if (btnEl) {
+      gsap.to(btnEl, {
+        boxShadow: '0 0 20px rgba(220, 38, 38, 0.6), 0 0 40px rgba(220, 38, 38, 0.3)',
+        repeat: -1,
+        yoyo: true,
+        duration: 1.2,
+        ease: 'sine.inOut',
+      });
+    }
+
+    // Countdown interval
+    let count = 10;
+    nextCountdownRef.current = setInterval(() => {
+      count -= 1;
+      setNextCountdown(count);
+      if (count <= 0) {
+        clearInterval(nextCountdownRef.current);
+        nextCountdownRef.current = null;
+        // Tự động chuyển tập
+        if (onNextEpisodeRef.current) {
+          // Slide-out animation trước khi chuyển
+          gsap.to(popupEl, {
+            x: 120,
+            opacity: 0,
+            scale: 0.9,
+            duration: 0.3,
+            ease: 'power2.in',
+            onComplete: () => {
+              setShowNextPopup(false);
+              onNextEpisodeRef.current();
+            },
+          });
+        }
+      }
+    }, 1000);
+
+    return () => {
+      if (nextCountdownRef.current) {
+        clearInterval(nextCountdownRef.current);
+        nextCountdownRef.current = null;
+      }
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [showNextPopup]);
+
+  const handleNextEpisode = () => {
+    if (!onNextEpisode) return;
+    // Dừng countdown
+    if (nextCountdownRef.current) {
+      clearInterval(nextCountdownRef.current);
+      nextCountdownRef.current = null;
+    }
+    const popupEl = nextPopupRef.current;
+    if (popupEl) {
+      gsap.to(popupEl, {
+        x: 120,
+        opacity: 0,
+        scale: 0.9,
+        duration: 0.3,
+        ease: 'power2.in',
+        onComplete: () => {
+          setShowNextPopup(false);
+          onNextEpisode();
+        },
+      });
+    } else {
+      setShowNextPopup(false);
+      onNextEpisode();
+    }
+  };
+
+  const handleDismissNextPopup = () => {
+    if (nextCountdownRef.current) {
+      clearInterval(nextCountdownRef.current);
+      nextCountdownRef.current = null;
+    }
+    nextPopupDismissedRef.current = true;
+    const popupEl = nextPopupRef.current;
+    if (popupEl) {
+      gsap.to(popupEl, {
+        x: 120,
+        opacity: 0,
+        scale: 0.9,
+        duration: 0.3,
+        ease: 'power2.in',
+        onComplete: () => setShowNextPopup(false),
+      });
+    } else {
+      setShowNextPopup(false);
+    }
+  };
 
   // Xử lý tap trên video: single tap = play/pause, double tap = tua
   const handleVideoTap = (e) => {
@@ -459,6 +640,74 @@ function VideoPlayer({
         {isBuffering && (
           <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
             <div className="h-12 w-12 rounded-full border-4 border-white/30 border-t-red-600 animate-spin" />
+          </div>
+        )}
+
+        {/* Next episode popup - Netflix style */}
+        {showNextPopup && nextEpisode && (
+          <div
+            ref={nextPopupRef}
+            className="absolute bottom-20 right-2 md:bottom-28 md:right-4 z-30 w-56 md:w-72 rounded-xl overflow-hidden"
+            style={{
+              background: 'linear-gradient(135deg, rgba(15,15,15,0.95) 0%, rgba(30,10,10,0.95) 100%)',
+              border: '1px solid rgba(220, 38, 38, 0.3)',
+              backdropFilter: 'blur(12px)',
+              boxShadow: '0 8px 32px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.05) inset',
+            }}
+          >
+            {/* Header */}
+            <div className="px-3 pt-2.5 pb-1.5 md:px-4 md:pt-3 md:pb-2 flex items-center justify-between">
+              <div className="flex items-center gap-1.5 md:gap-2">
+                <SkipForward className="w-3.5 h-3.5 md:w-4 md:h-4 text-red-500" />
+                <span className="text-[10px] md:text-xs font-semibold text-gray-300 uppercase tracking-wider">Tập tiếp theo</span>
+              </div>
+              {/* Countdown circle */}
+              <div className="relative w-8 h-8 md:w-10 md:h-10 flex items-center justify-center">
+                <svg className="w-8 h-8 md:w-10 md:h-10 -rotate-90" viewBox="0 0 40 40">
+                  <circle cx="20" cy="20" r="18" fill="none" stroke="rgba(255,255,255,0.1)" strokeWidth="2" />
+                  <circle
+                    ref={nextCountdownCircleRef}
+                    cx="20" cy="20" r="18"
+                    fill="none"
+                    stroke="#dc2626"
+                    strokeWidth="2.5"
+                    strokeLinecap="round"
+                    strokeDasharray={2 * Math.PI * 18}
+                    strokeDashoffset={0}
+                  />
+                </svg>
+                <span className="absolute text-[10px] md:text-xs font-bold text-white">{nextCountdown}</span>
+              </div>
+            </div>
+
+            {/* Episode info */}
+            <div className="px-3 pb-1.5 md:px-4 md:pb-2">
+              <p className="text-white font-semibold text-xs md:text-sm truncate">
+                {nextEpisode.name ? `Tập ${nextEpisode.name}` : 'Tập tiếp theo'}
+              </p>
+              {title && (
+                <p className="text-gray-400 text-xs mt-0.5 truncate">{title}</p>
+              )}
+            </div>
+
+            {/* Actions */}
+            <div className="px-3 pb-2.5 md:px-4 md:pb-3 flex gap-2">
+              <button
+                type="button"
+                onClick={handleNextEpisode}
+                className="next-ep-btn flex-1 py-1.5 md:py-2 bg-red-600 hover:bg-red-700 text-white text-xs md:text-sm font-semibold rounded-lg flex items-center justify-center gap-1 md:gap-1.5 transition-colors"
+              >
+                <SkipForward className="w-3.5 h-3.5 md:w-4 md:h-4" />
+                Xem ngay
+              </button>
+              <button
+                type="button"
+                onClick={handleDismissNextPopup}
+                className="px-2.5 py-1.5 md:px-3 md:py-2 bg-white/10 hover:bg-white/20 text-gray-300 text-xs md:text-sm rounded-lg transition-colors"
+              >
+                Hủy
+              </button>
+            </div>
           </div>
         )}
 

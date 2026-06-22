@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, useCallback, useMemo } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { useGetMovieByIdQuery, useGetMovieImagesQuery } from '../redux/services/movieApi';
 import { useUser } from '@clerk/react';
@@ -271,6 +271,28 @@ function WatchPage() {
     }
   };
 
+  // Tìm tập tiếp theo trong cùng server
+  const nextEpisodeData = useMemo(() => {
+    if (!movie?.episodes?.length || !currentEpisode) return null;
+    const server = movie.episodes[currentEpisode.serverIndex];
+    if (!server?.server_data?.length) return null;
+    const nextIndex = currentEpisode.episodeIndex + 1;
+    if (nextIndex >= server.server_data.length) return null;
+    return {
+      ...server.server_data[nextIndex],
+      serverIndex: currentEpisode.serverIndex,
+      episodeIndex: nextIndex,
+    };
+  }, [movie, currentEpisode]);
+
+  const handleNextEpisode = useCallback(() => {
+    if (!nextEpisodeData) return;
+    navigate(
+      `/xem/${slug}?server=${nextEpisodeData.serverIndex}&ep=${nextEpisodeData.episodeIndex}`,
+      { replace: true }
+    );
+  }, [nextEpisodeData, navigate, slug]);
+
   if (loading || !movie) {
     return <WatchPageSkeleton />;
   }
@@ -335,6 +357,8 @@ function WatchPage() {
               startTime={startTime}
               onTimeUpdate={handleTimeUpdate}
               onPause={handlePause}
+              nextEpisode={nextEpisodeData}
+              onNextEpisode={handleNextEpisode}
             />
           ) : (
             <div className="h-full flex items-center justify-center text-gray-400">
