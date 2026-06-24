@@ -3,10 +3,12 @@ const cors = require('cors');
 const { clerkMiddleware, requireAuth, getAuth } = require('@clerk/express');
 const movieRoutes = require('./routes/movies');
 const userRoutes = require('./routes/users');
+const youtubeRoutes = require('./routes/youtube');
 
 /**
  * Express app dùng chung cho:
  * - Local server (backend/server.js)
+ * - Netlify Functions (netlify/functions/api.cjs)
  * - Netlify Functions (netlify/functions/api.cjs)
  */
 const app = express();
@@ -19,6 +21,7 @@ app.use(clerkMiddleware());
 // Routes
 app.use('/api/movies', movieRoutes);
 app.use('/api/users', userRoutes);
+app.use('/api/youtube', youtubeRoutes);
 
 // Protected Route - Kiểm thử xác thực
 app.get('/api/profile', requireAuth(), (req, res) => {

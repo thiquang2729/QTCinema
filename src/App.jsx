@@ -6,6 +6,7 @@ import SearchPage from './pages/SearchPage';
 import WatchPage from './pages/WatchPage';
 import MovieListPage from './pages/MovieListPage';
 import WatchlistPage from './pages/WatchlistPage';
+import YoutubeDownloader from './pages/YoutubeDownloader';
 import Footer from './components/Footer';
 import GlobalLoading from './components/GlobalLoading';
 import ScrollToTop from './components/ScrollToTop';
@@ -32,6 +33,7 @@ function App() {
             <Route path="/danh-sach/:slug" element={<MovieListPage />} />
             <Route path="/search/:keyword" element={<SearchPage />} />
             <Route path="/watchlist" element={<WatchlistPage />} />
+            <Route path="/youtube-downloader" element={<YoutubeDownloader />} />
           </Routes>
         </main>
 

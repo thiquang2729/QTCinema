@@ -222,6 +222,13 @@ function Navbar() {
                   Phim yêu thích
                 </Link>
               </Show>
+              <Link
+                to="/youtube-downloader"
+                className="text-gray-300 hover:text-white transition-colors text-sm font-medium animate-pulse hover:animate-none"
+                style={{ color: '#f87171' }}
+              >
+                Tải nhạc/video YT
+              </Link>
             </div>
           </div>
 
@@ -481,6 +488,13 @@ function Navbar() {
                   Phim yêu thích
                 </Link>
               </Show>
+              <Link
+                to="/youtube-downloader"
+                onClick={() => setIsMenuOpen(false)}
+                className="block px-3 py-2 text-red-400 hover:text-white hover:bg-red-600/20 rounded transition-colors font-medium"
+              >
+                Tải nhạc/video YT
+              </Link>
             </div>
           </div>
         )}
