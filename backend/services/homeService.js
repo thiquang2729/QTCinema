@@ -13,7 +13,7 @@ class HomeService {
     const response = await movieRepository.getHomeMovies(page);
     const data = response.data || {};
     const items = data.items || [];
-    const cdnImageUrl = data.APP_DOMAIN_CDN_IMAGE || 'https://img.ophim.live';
+    const cdnImageUrl = data.APP_DOMAIN_CDN_IMAGE || 'https://phimimg.com';
 
     // Transform và apply image URLs
     const movies = items.map(movie => {

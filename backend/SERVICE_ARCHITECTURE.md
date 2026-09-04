@@ -24,7 +24,7 @@ services/
 **File:** [transformService.js](file:///d:/Dev/Code/QTcinema/backend/services/transformService.js)
 
 **Trách nhiệm:**
-- Transform data từ OPhim API format
+- Transform data từ KKPhim (phimapi.com) API format
 - Xử lý image URLs
 - Data normalization
 

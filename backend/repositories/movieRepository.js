@@ -2,7 +2,7 @@ const axios = require('axios');
 const API_CONFIG = require('../config/api.config');
 
 /**
- * Repository layer - Chịu trách nhiệm gọi API bên ngoài (OPhim)
+ * Repository layer - Chịu trách nhiệm gọi API bên ngoài (KKPhim - phimapi.com)
  * Sau này khi có database, layer này sẽ tương tác với DB
  */
 class MovieRepository {

@@ -13,10 +13,10 @@ class MovieDetailService {
     const response = await movieRepository.getMovieBySlug(slug);
     
     /**
-     * Các API OPhim có 2 kiểu response phổ biến:
-     * - https://ophim1.com/phim/:slug
+     * Các API KKPhim (phimapi.com) có cấu trúc response:
+     * - https://phimapi.com/phim/:slug
      *   { status: true, msg: '', movie: {...}, episodes: [...] }
-     * - Một số domain khác:
+     * - Hoặc định dạng v1 (/v1/api/phim/:slug):
      *   { status, message, data: { item: {..., episodes: [...] } } }
      */
     const movieData =
@@ -55,7 +55,7 @@ class MovieDetailService {
     try {
       response = await movieRepository.getMovieImages(slug);
     } catch (err) {
-      // Một số phim OPhim/TMDB không có images hoặc endpoint trả 500.
+      // Một số phim KKPhim/TMDB không có images hoặc endpoint trả 500.
       // Không xem đây là lỗi fatal để tránh làm sập trang chi tiết.
       return {
         status: 'success',

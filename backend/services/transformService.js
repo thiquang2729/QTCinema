@@ -1,9 +1,9 @@
 /**
  * Transform Service
- * Chịu trách nhiệm transform data từ OPhim API sang format cho frontend
+ * Chịu trách nhiệm transform data từ KKPhim (phimapi.com) API sang format cho frontend
  */
 
-const CDN_IMAGE_URL = 'https://img.ophim.live';
+const CDN_IMAGE_URL = 'https://phimimg.com';
 
 class TransformService {
   /**
@@ -78,9 +78,25 @@ class TransformService {
    * Tạo URL đầy đủ cho image
    */
   buildImageUrl(imagePath, cdnUrl = CDN_IMAGE_URL) {
-    if (!imagePath) return null;
-    if (imagePath.startsWith('http')) return imagePath;
-    return `${cdnUrl}/uploads/movies/${imagePath}`;
+    if (!imagePath || typeof imagePath !== 'string') return null;
+    const trimmed = imagePath.trim();
+    if (!trimmed) return null;
+
+    if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
+      return trimmed;
+    }
+    if (trimmed.startsWith('//')) {
+      return `https:${trimmed}`;
+    }
+
+    const cleanCdn = (cdnUrl || CDN_IMAGE_URL).replace(/\/+$/, '');
+    if (trimmed.startsWith('/')) {
+      return `${cleanCdn}${trimmed}`;
+    }
+    if (trimmed.startsWith('upload/') || trimmed.startsWith('uploads/')) {
+      return `${cleanCdn}/${trimmed}`;
+    }
+    return `${cleanCdn}/uploads/movies/${trimmed}`;
   }
 
   /**

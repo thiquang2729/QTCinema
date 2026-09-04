@@ -13,10 +13,11 @@ class SearchService {
     const response = await movieRepository.searchMovies(keyword, page, limit);
     const data = response.data || {};
     const items = data.items || [];
+    const cdnImageUrl = data.APP_DOMAIN_CDN_IMAGE || 'https://phimimg.com';
 
     const movies = items.map(movie => {
       const transformed = transformService.transformMovie(movie);
-      return transformService.applyImageUrls(transformed);
+      return transformService.applyImageUrls(transformed, cdnImageUrl);
     });
 
     return {
@@ -34,10 +35,11 @@ class SearchService {
     const response = await movieRepository.getMoviesByList(listSlug, filters);
     const data = response.data || {};
     const items = data.items || [];
+    const cdnImageUrl = data.APP_DOMAIN_CDN_IMAGE || 'https://phimimg.com';
 
     const movies = items.map(movie => {
       const transformed = transformService.transformMovie(movie);
-      return transformService.applyImageUrls(transformed);
+      return transformService.applyImageUrls(transformed, cdnImageUrl);
     });
 
     return {
@@ -54,10 +56,11 @@ class SearchService {
     const response = await movieRepository.getMoviesByCategory(categorySlug, filters);
     const data = response.data || {};
     const items = data.items || [];
+    const cdnImageUrl = data.APP_DOMAIN_CDN_IMAGE || 'https://phimimg.com';
 
     const movies = items.map(movie => {
       const transformed = transformService.transformMovie(movie);
-      return transformService.applyImageUrls(transformed);
+      return transformService.applyImageUrls(transformed, cdnImageUrl);
     });
 
     return {
@@ -74,10 +77,11 @@ class SearchService {
     const response = await movieRepository.getMoviesByCountry(countrySlug, filters);
     const data = response.data || {};
     const items = data.items || [];
+    const cdnImageUrl = data.APP_DOMAIN_CDN_IMAGE || 'https://phimimg.com';
 
     const movies = items.map(movie => {
       const transformed = transformService.transformMovie(movie);
-      return transformService.applyImageUrls(transformed);
+      return transformService.applyImageUrls(transformed, cdnImageUrl);
     });
 
     return {
@@ -92,13 +96,14 @@ class SearchService {
    */
   async getCountries() {
     const response = await movieRepository.getCountries();
-    // OPhim trả: { status: 'success', data: [...] }
-    // movieRepository.getCountries() trả về đúng object JSON đó.
-    const items = Array.isArray(response.data)
-      ? response.data
-      : Array.isArray(response.data?.data)
-        ? response.data.data
-        : [];
+    // KKPhim trả: { status: 'success', data: { items: [...] } } hoặc { status: 'success', data: [...] }
+    const items = Array.isArray(response.data?.items)
+      ? response.data.items
+      : Array.isArray(response.data)
+        ? response.data
+        : Array.isArray(response.data?.data)
+          ? response.data.data
+          : [];
 
     return {
       status: 'success',

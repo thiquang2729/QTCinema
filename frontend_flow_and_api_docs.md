@@ -66,7 +66,7 @@ Toàn bộ các yêu cầu HTTP được gọi từ Frontend thông qua các Thu
         "currentPage": 1,
         "totalPages": 50
       },
-      "cdnImageUrl": "https://img.ophim.live"
+      "cdnImageUrl": "https://phimimg.com"
     }
     ```
 
@@ -244,14 +244,14 @@ Danh sách tập phim được phân chia theo từng cụm máy chủ phát (Se
         "name": "1",
         "slug": "tap-01",
         "filename": "Tập 1",
-        "link_embed": "https://player.ophim.live/video/...",
+        "link_embed": "https://player.phimapi.com/player/?url=...",
         "link_m3u8": "https://s3.phim.live/video/tap-1/index.m3u8" // Đường dẫn quan trọng truyền vào Player
       },
       {
         "name": "2",
         "slug": "tap-02",
         "filename": "Tập 2",
-        "link_embed": "https://player.ophim.live/video/...",
+        "link_embed": "https://player.phimapi.com/player/?url=...",
         "link_m3u8": "https://s3.phim.live/video/tap-2/index.m3u8"
       }
     ]

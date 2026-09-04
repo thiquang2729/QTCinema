@@ -32,7 +32,7 @@ backend/
 **File:** [movieRepository.js](file:///d:/Dev/Code/QTcinema/backend/repositories/movieRepository.js)
 
 **Nhiệm vụ:**
-- Gọi API bên ngoài (OPhim)
+- Gọi API bên ngoài (KKPhim - phimapi.com)
 - Sau này sẽ tương tác với Database
 
 **Methods:**
