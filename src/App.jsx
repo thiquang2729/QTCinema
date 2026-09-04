@@ -10,6 +10,7 @@ import YoutubeDownloader from './pages/YoutubeDownloader';
 import Footer from './components/Footer';
 import GlobalLoading from './components/GlobalLoading';
 import ScrollToTop from './components/ScrollToTop';
+import LoginTip from './components/LoginTip';
 
 function App() {
   return (
@@ -20,6 +21,9 @@ function App() {
       <div className="min-h-screen bg-black">
         {/* Hỗ trợ loading global cực xịn sò */}
         <GlobalLoading />
+        
+        {/* Gợi ý đăng nhập cho người dùng mới */}
+        <LoginTip />
         
         {/* Navbar */}
         <Navbar />
